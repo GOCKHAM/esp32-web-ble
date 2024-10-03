@@ -93,7 +93,6 @@ input:checked + .slider:before {
     transition: background-color 0.3s; /* Voeg een overgang toe voor een soepel effect */
 }
 
-
 .gray-label {
     color: #bebebe;
     font-size: 1rem;
