@@ -1,11 +1,3 @@
-<!--
-  Rui Santos
-  Complete project details at https://RandomNerdTutorials.com/esp32-web-bluetooth/
-
-  Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files.
-  The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
--->
-
 <!DOCTYPE html>
 <html>
 <head>
@@ -38,31 +30,36 @@
 
             <div class="card">
                 <h2>Control LED</h2>
-                <button id="onButton" class="onButton">ON</button>
-                <button id="offButton" class="offButton">OFF</button>
+                <label class="switch">
+                    <input type="checkbox" id="ledSwitch">
+                    <span class="slider round"></span>
+                </label>
                 <p class="gray-label">Last value sent: <span id="valueSent"></span></p>
             </div>
         </div>
+    </div>
+    <div class="footer">
+        <p><a href="https://randomnerdtutorials.com/">Created by RandomNerdTutorials.com</a></p>
+        <p><a href="https://RandomNerdTutorials.com/esp32-web-bluetooth/">Read the full project here.</a></p>
     </div>
 </body>
 <script>
     // DOM Elements
     const connectButton = document.getElementById('connectBleButton');
     const disconnectButton = document.getElementById('disconnectBleButton');
-    const onButton = document.getElementById('onButton');
-    const offButton = document.getElementById('offButton');
+    const ledSwitch = document.getElementById('ledSwitch');
     const retrievedValue = document.getElementById('valueContainer');
     const latestValueSent = document.getElementById('valueSent');
     const bleStateContainer = document.getElementById('bleState');
     const timestampContainer = document.getElementById('timestamp');
 
-    //Define BLE Device Specs
+    // Define BLE Device Specs
     var deviceName ='ESP32SINS';
     var bleService = '064fd7fc-23b7-4518-840d-d5a475223b3b';
     var ledCharacteristic = 'e97eeab2-0d47-4ce3-8590-959073d5b2c2';
     var sensorCharacteristic= '0c1a1fdf-b5a9-4f24-913d-d289fea37475';
 
-    //Global Variables to Handle Bluetooth
+    // Global Variables to Handle Bluetooth
     var bleServer;
     var bleServiceFound;
     var sensorCharacteristicFound;
@@ -77,19 +74,21 @@
     // Disconnect Button
     disconnectButton.addEventListener('click', disconnectDevice);
 
-    // Write to the ESP32 LED Characteristic
-    onButton.addEventListener('click', () => writeOnCharacteristic(1));
-    offButton.addEventListener('click', () => writeOnCharacteristic(0));
+    // Toggle Switch for LED
+    ledSwitch.addEventListener('change', (event) => {
+        const value = event.target.checked ? "ON" : "OFF"; // Determine the value based on the switch
+        writeOnCharacteristic(value); // Write the value to the ESP32
+    });
 
     // Check if BLE is available in your Browser
     function isWebBluetoothEnabled() {
         if (!navigator.bluetooth) {
             console.log('Web Bluetooth API is not available in this browser!');
             bleStateContainer.innerHTML = "Web Bluetooth API is not available in this browser/device!";
-            return false
+            return false;
         }
         console.log('Web Bluetooth API supported in this browser.');
-        return true
+        return true;
     }
 
     // Connect to BLE Device and Enable Notifications
@@ -132,7 +131,7 @@
         })
         .catch(error => {
             console.log('Error: ', error);
-        })
+        });
     }
 
     function onDisconnected(event){
@@ -155,19 +154,19 @@
             bleServiceFound.getCharacteristic(ledCharacteristic)
             .then(characteristic => {
                 console.log("Found the LED characteristic: ", characteristic.uuid);
-                const data = new Uint8Array([value]);
+                const data = new TextEncoder().encode(value); // Encode the string to Uint8Array
                 return characteristic.writeValue(data);
             })
             .then(() => {
                 latestValueSent.innerHTML = value;
-                console.log("Value written to LEDcharacteristic:", value);
+                console.log("Value written to LED characteristic:", value);
             })
             .catch(error => {
                 console.error("Error writing to the LED characteristic: ", error);
             });
         } else {
-            console.error ("Bluetooth is not connected. Cannot write to characteristic.")
-            window.alert("Bluetooth is not connected. Cannot write to characteristic. \n Connect to BLE first!")
+            console.error("Bluetooth is not connected. Cannot write to characteristic.");
+            window.alert("Bluetooth is not connected. Cannot write to characteristic. \n Connect to BLE first!");
         }
     }
 
@@ -195,13 +194,13 @@
         } else {
             // Throw an error if Bluetooth is not connected
             console.error("Bluetooth is not connected.");
-            window.alert("Bluetooth is not connected.")
+            window.alert("Bluetooth is not connected.");
         }
     }
 
     function getDateTime() {
         var currentdate = new Date();
-        var day = ("00" + currentdate.getDate()).slice(-2); // Convert day to string and slice
+        var day = ("00" + currentdate.getDate()).slice(-2);
         var month = ("00" + (currentdate.getMonth() + 1)).slice(-2);
         var year = currentdate.getFullYear();
         var hours = ("00" + currentdate.getHours()).slice(-2);
@@ -211,8 +210,5 @@
         var datetime = day + "/" + month + "/" + year + " at " + hours + ":" + minutes + ":" + seconds;
         return datetime;
     }
-
-
 </script>
-
 </html>
