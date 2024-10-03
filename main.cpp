@@ -1,5 +1,3 @@
-#include <Arduino.h>
-#include <Adafruit_Sensor.h>
 /*
   Rui Santos & Sara Santos - Random Nerd Tutorials
   Complete project details at https://RandomNerdTutorials.com/esp32-web-bluetooth/
@@ -18,11 +16,11 @@ bool deviceConnected = false;
 bool oldDeviceConnected = false;
 uint32_t value = 0;
 
-const int ledPin = 26; // Use the appropriate GPIO pin for your setup
+const int ledPin = 2; // Use the appropriate GPIO pin for your setup
 
-#define SERVICE_UUID        "064fd7fc-23b7-4518-840d-d5a475223b3b"
-#define SENSOR_CHARACTERISTIC_UUID "0c1a1fdf-b5a9-4f24-913d-d289fea37475"
-#define LED_CHARACTERISTIC_UUID "e97eeab2-0d47-4ce3-8590-959073d5b2c2"
+#define SERVICE_UUID        "19b10000-e8f2-537e-4f6c-d104768a1214"
+#define SENSOR_CHARACTERISTIC_UUID "19b10001-e8f2-537e-4f6c-d104768a1214"
+#define LED_CHARACTERISTIC_UUID "19b10002-e8f2-537e-4f6c-d104768a1214"
 
 class MyServerCallbacks: public BLEServerCallbacks {
   void onConnect(BLEServer* pServer) {
@@ -58,7 +56,7 @@ void setup() {
   pinMode(ledPin, OUTPUT);
 
   // Create the BLE Device
-  BLEDevice::init("ESP32SINS");
+  BLEDevice::init("ESP32");
 
   // Create the BLE Server
   pServer = BLEDevice::createServer();
