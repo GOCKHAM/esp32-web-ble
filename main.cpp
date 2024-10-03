@@ -5,9 +5,8 @@
 #include <BLEUtils.h>
 #include <BLE2902.h>
 
-const int ledPin = 26; // Verander dit naar je GPIO pin
+const int ledPin = 26; // Pas dit aan naar je GPIO pin
 bool deviceConnected = false;
-bool ledState = false;
 
 // BLE Service en Characteristic UUIDs
 #define SERVICE_UUID "064fd7fc-23b7-4518-840d-d5a475223b3b"
@@ -26,6 +25,8 @@ class MyCharacteristicCallbacks : public BLECharacteristicCallbacks {
     } else if (ledvalue == "OFF") {
       digitalWrite(ledPin, LOW);   // Zet LED uit
       Serial.println("LED OFF");
+    } else {
+      Serial.println("Unknown command received");
     }
   }
 };
@@ -33,10 +34,12 @@ class MyCharacteristicCallbacks : public BLECharacteristicCallbacks {
 class MyServerCallbacks : public BLEServerCallbacks {
   void onConnect(BLEServer* pServer) {
     deviceConnected = true;
+    Serial.println("Device Connected");
   }
 
   void onDisconnect(BLEServer* pServer) {
     deviceConnected = false;
+    Serial.println("Device Disconnected");
   }
 };
 
@@ -62,5 +65,11 @@ void setup() {
 }
 
 void loop() {
-  // Hier kun je andere taken toevoegen of de status controleren
+  // Voeg hier debug-informatie toe of andere functionaliteiten
+  if (deviceConnected) {
+    Serial.println("Device is connected.");
+  } else {
+    Serial.println("Device is not connected.");
+  }
+  delay(1000); // Vermijd overbelasting van de serial output
 }
