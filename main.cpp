@@ -1,3 +1,5 @@
+#include <Arduino.h>
+#include <Adafruit_Sensor.h>
 #include <BLEDevice.h>
 #include <BLEServer.h>
 #include <BLEUtils.h>
@@ -63,12 +65,11 @@ void setup() {
 }
 
 void loop() {
-  // Controleer regelmatig de verbinding
+  // Voeg hier debug-informatie toe of andere functionaliteiten
   if (deviceConnected) {
-    // Voer hier je andere code uit, zoals lezen van sensoren, etc.
-    Serial.println("Device is connected."); // Print alleen als de verbinding actief is
+    Serial.println("Device is connected.");
   } else {
-    Serial.println("Device is not connected."); // Print alleen als de verbinding verbroken is
+    Serial.println("Device is not connected.");
   }
   delay(1000); // Vermijd overbelasting van de serial output
 }
