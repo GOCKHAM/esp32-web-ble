@@ -3,20 +3,28 @@ html {
     display: inline-block;
     text-align: center;
 }
+
+body {
+    margin: 0;
+    background-image: url('https://png.pngtree.com/template/20221207/ourmid/pngtree-neon-led-light-lines-in-hexagonal-shape-banner-image_1917033.jpg');
+    background-size: cover; /* Zorg ervoor dat de afbeelding de hele achtergrond bedekt */
+    background-repeat: no-repeat; /* Voorkom herhaling van de afbeelding */
+}
+
 h1 {
     font-size: 1.8rem;
     color: white;
 }
+
 .topnav {
     overflow: hidden;
     background-color: #0A1128;
 }
-body {
-    margin: 0;
-}
+
 .content {
     padding: 50px;
 }
+
 .card-grid {
     max-width: 800px;
     margin: 0 auto;
@@ -25,17 +33,10 @@ body {
     grid-gap: 2rem;
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
 }
+
 .card {
     background-color: white;
     box-shadow: 2px 2px 12px 1px rgba(140,140,140,.5);
-}
-button {
-    color: white;
-    padding: 14px 20px;
-    margin: 8px 0;
-    border: none;
-    cursor: pointer;
-    border-radius: 4px;
 }
 
 .switch {
@@ -81,6 +82,15 @@ input:checked + .slider {
 
 input:checked + .slider:before {
     transform: translateX(26px);
+}
+
+.led-symbol {
+    width: 50px; /* Breedte van het LED-symbool */
+    height: 50px; /* Hoogte van het LED-symbool */
+    border-radius: 50%; /* Maak het rond */
+    background-color: gray; /* Begin met een grijze kleur */
+    margin: 20px auto; /* Centreer het symbool */
+    transition: background-color 0.3s; /* Voeg een overgang toe voor een soepel effect */
 }
 
 .gray-label {
