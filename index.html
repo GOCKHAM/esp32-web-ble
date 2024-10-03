@@ -35,13 +35,11 @@
                     <span class="slider round"></span>
                 </label>
                 <p class="gray-label">Last value sent: <span id="valueSent"></span></p>
+                <div id="ledSymbol" class="led-symbol"></div> <!-- LED symbool -->
             </div>
         </div>
     </div>
-    <div class="footer">
-        <p><a href="https://randomnerdtutorials.com/">Created by RandomNerdTutorials.com</a></p>
-        <p><a href="https://RandomNerdTutorials.com/esp32-web-bluetooth/">Read the full project here.</a></p>
-    </div>
+
 </body>
 <script>
     // DOM Elements
@@ -76,8 +74,16 @@
 
     // Toggle Switch for LED
     ledSwitch.addEventListener('change', (event) => {
-        const value = event.target.checked ? "ON" : "OFF"; // Determine the value based on the switch
-        writeOnCharacteristic(value); // Write the value to the ESP32
+        const value = event.target.checked ? "ON" : "OFF"; // Bepaal de waarde op basis van de schakelaar
+        writeOnCharacteristic(value); // Schrijf de waarde naar de ESP32
+
+        // Verander de achtergrondkleur van het LED-symbool
+        const ledSymbol = document.getElementById('ledSymbol');
+        if (event.target.checked) {
+            ledSymbol.style.backgroundColor = "green"; // LED aan (groen)
+        } else {
+            ledSymbol.style.backgroundColor = "gray"; // LED uit (grijs)
+        }
     });
 
     // Check if BLE is available in your Browser
@@ -192,7 +198,6 @@
                 console.log("No characteristic found to disconnect.");
             }
         } else {
-            // Throw an error if Bluetooth is not connected
             console.error("Bluetooth is not connected.");
             window.alert("Bluetooth is not connected.");
         }
