@@ -84,7 +84,7 @@ input:checked + .slider:before {
 }
 
 .gray-label {
-    color: #bebebe;
+    color: #ff0000;
     font-size: 1rem;
 }
 
