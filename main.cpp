@@ -63,12 +63,20 @@ void setup() {
 }
 
 void loop() {
+  static unsigned long lastPrintTime = 0; // Houd de tijd bij voor het afdrukken van meldingen
+  unsigned long currentMillis = millis(); // Huidige tijd in milliseconden
+
   // Controleer regelmatig de verbinding
-  if (deviceConnected) {
-    // Voer hier je andere code uit, zoals lezen van sensoren, etc.
-    Serial.println("Device is connected."); // Print alleen als de verbinding actief is
-  } else {
-    Serial.println("Device is not connected."); // Print alleen als de verbinding verbroken is
+  if (currentMillis - lastPrintTime >= 2000) { // Elke 2 seconden
+    if (deviceConnected) {
+      Serial.println("Device is connected.");
+    } else {
+      Serial.println("Device is not connected.");
+    }
+    lastPrintTime = currentMillis; // Reset de tijd
   }
-  delay(1000); // Vermijd overbelasting van de serial output
+
+  // Voer hier je andere code uit, zoals lezen van sensoren, etc.
+  delay(100); // Voeg een korte vertraging toe om de CPU te ontlasten
 }
+
