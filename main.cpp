@@ -41,21 +41,21 @@ class MyServerCallbacks: public BLEServerCallbacks {
 
 class MyCharacteristicCallbacks : public BLECharacteristicCallbacks {
   void onWrite(BLECharacteristic* pLedCharacteristic) {
-    std::string ledvalue  = pLedCharacteristic->getValue(); 
-    String value = String(ledvalue.c_str());
-    if (value.length() > 0) {
-      Serial.print("Characteristic event, written: ");
-      Serial.println(static_cast<int>(value[0])); // Print the integer value
+    std::string ledvalue = pLedCharacteristic->getValue(); 
+    if (ledvalue.length() > 0) {
+      int receivedValue = ledvalue[0] - '0'; // Convert the received char to int (0 or 1)
+      Serial.print("Received value: ");
+      Serial.println(receivedValue);
 
-      int receivedValue = static_cast<int>(value[0]);
       if (receivedValue == 1) {
-        digitalWrite(ledPin, HIGH);
+        digitalWrite(ledPin, HIGH);  // Turn LED ON
       } else {
-        digitalWrite(ledPin, LOW);
+        digitalWrite(ledPin, LOW);   // Turn LED OFF
       }
     }
   }
 };
+
 
 void setup() {
   Serial.begin(115200);
