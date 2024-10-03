@@ -15,8 +15,8 @@
         <div class="card-grid">
             <div class="card">
                 <p>
-                    <button id="connectBleButton" class="connectButton"> Connect to BLE Device</button>
-                    <button id="disconnectBleButton" class="disconnectButton"> Disconnect BLE Device</button>
+                    <button id="connectBleButton" class="connectButton">Connect to BLE Device</button>
+                    <button id="disconnectBleButton" class="disconnectButton">Disconnect BLE Device</button>
                 </p>
                 <p class="gray-label">BLE state: <strong><span id="bleState" style="color:#d13a30;">Disconnected</span></strong></p>
             </div>
@@ -39,7 +39,10 @@
             </div>
         </div>
     </div>
-
+    <div class="footer">
+        <p><a href="https://randomnerdtutorials.com/">Created by RandomNerdTutorials.com</a></p>
+        <p><a href="https://RandomNerdTutorials.com/esp32-web-bluetooth/">Read the full project here.</a></p>
+    </div>
 </body>
 <script>
     // DOM Elements
@@ -189,7 +192,6 @@
                         console.log("Device Disconnected");
                         bleStateContainer.innerHTML = "Device Disconnected";
                         bleStateContainer.style.color = "#d13a30";
-
                     })
                     .catch(error => {
                         console.log("An error occurred:", error);
