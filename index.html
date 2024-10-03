@@ -36,7 +36,7 @@
                 </label>
                 <p class="gray-label">Last value sent: <span id="valueSent"></span></p>
                 <div id="ledSymbol" class="led-symbol"></div> <!-- LED symbool -->
-            </div>            
+            </div>
         </div>
     </div>
     <div class="footer">
@@ -56,9 +56,9 @@
 
     // Define BLE Device Specs
     var deviceName ='ESP32SINS';
-    var bleService = '064fd7fc-23b7-4518-840d-d5a475223b3b';
-    var ledCharacteristic = 'e97eeab2-0d47-4ce3-8590-959073d5b2c2';
-    var sensorCharacteristic= '0c1a1fdf-b5a9-4f24-913d-d289fea37475';
+    var bleService = '064fd7fc-23b7-4518-840d-d5a475223b3b'; // Dezelfde UUID als in je ESP32 code
+    var ledCharacteristic = '0c1a1fdf-b5a9-4f24-913d-d289fea37475'; // Dezelfde UUID als in je ESP32 code
+    var sensorCharacteristic= 'e97eeab2-0d47-4ce3-8590-959073d5b2c2'; // Dezelfde UUID als in je ESP32 code
 
     // Global Variables to Handle Bluetooth
     var bleServer;
@@ -77,18 +77,17 @@
 
     // Toggle Switch for LED
     ledSwitch.addEventListener('change', (event) => {
-    const value = event.target.checked ? "ON" : "OFF"; // Bepaal de waarde op basis van de schakelaar
-    writeOnCharacteristic(value); // Schrijf de waarde naar de ESP32
+        const value = event.target.checked ? "ON" : "OFF"; // Bepaal de waarde op basis van de schakelaar
+        writeOnCharacteristic(value); // Schrijf de waarde naar de ESP32
 
-    // Verander de achtergrondkleur van het LED-symbool
-    const ledSymbol = document.getElementById('ledSymbol');
-    if (event.target.checked) {
-        ledSymbol.style.backgroundColor = "green"; // LED aan (groen)
-    } else {
-        ledSymbol.style.backgroundColor = "gray"; // LED uit (grijs)
-    }
-});
-
+        // Verander de achtergrondkleur van het LED-symbool
+        const ledSymbol = document.getElementById('ledSymbol');
+        if (event.target.checked) {
+            ledSymbol.style.backgroundColor = "green"; // LED aan (groen)
+        } else {
+            ledSymbol.style.backgroundColor = "gray"; // LED uit (grijs)
+        }
+    });
 
     // Check if BLE is available in your Browser
     function isWebBluetoothEnabled() {
@@ -129,7 +128,7 @@
             console.log("Characteristic discovered:", characteristic.uuid);
             sensorCharacteristicFound = characteristic;
             characteristic.addEventListener('characteristicvaluechanged', handleCharacteristicChange);
-            characteristic.startNotifications();
+            characteristic.startNotifications(); // Start notifications voor updates
             console.log("Notifications Started.");
             return characteristic.readValue();
         })
@@ -137,7 +136,7 @@
             console.log("Read value: ", value);
             const decodedValue = new TextDecoder().decode(value);
             console.log("Decoded value: ", decodedValue);
-            retrievedValue.innerHTML = decodedValue;
+            retrievedValue.innerHTML = decodedValue; // Toon de gelezen waarde
         })
         .catch(error => {
             console.log('Error: ', error);
@@ -155,8 +154,8 @@
     function handleCharacteristicChange(event){
         const newValueReceived = new TextDecoder().decode(event.target.value);
         console.log("Characteristic value changed: ", newValueReceived);
-        retrievedValue.innerHTML = newValueReceived;
-        timestampContainer.innerHTML = getDateTime();
+        retrievedValue.innerHTML = newValueReceived; // Toon de nieuwe waarde op de webpagina
+        timestampContainer.innerHTML = getDateTime(); // Optioneel, update de timestamp
     }
 
     function writeOnCharacteristic(value){
