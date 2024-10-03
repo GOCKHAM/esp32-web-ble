@@ -71,7 +71,7 @@ h1 {
     width: 26px;
     left: 4px;
     bottom: 4px;
-    background-color: white;
+    background-color: rgb(173, 0, 165);
     transition: .4s;
     border-radius: 50%;
 }
