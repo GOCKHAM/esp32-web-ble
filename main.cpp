@@ -5,7 +5,7 @@
 #include <BLEUtils.h>
 #include <BLE2902.h>
 
-const int ledPin = 2; // Verander dit naar je GPIO pin
+const int ledPin = 26; // Verander dit naar je GPIO pin
 bool deviceConnected = false;
 bool ledState = false;
 
