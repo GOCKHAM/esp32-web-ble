@@ -40,17 +40,22 @@ class MyServerCallbacks: public BLEServerCallbacks {
 };
 
 class MyCharacteristicCallbacks : public BLECharacteristicCallbacks {
-  void onWrite(BLECharacteristic* pLedCharacteristic) {
+  void onWrite(BLECharacteristic* pLedCharacteristic) override {
     std::string ledvalue = pLedCharacteristic->getValue(); 
-    if (ledvalue.length() > 0) {
-      int receivedValue = ledvalue[0] - '0'; // Convert the received char to int (0 or 1)
-      Serial.print("Received value: ");
-      Serial.println(receivedValue);
+    String value = String(ledvalue.c_str());
+    
+    if (value.length() > 0) {
+      Serial.print("Characteristic event, written: ");
+      Serial.println(static_cast<int>(value[0])); // Print the integer value
 
+      int receivedValue = static_cast<int>(value[0]);
+      
       if (receivedValue == 1) {
-        digitalWrite(ledPin, HIGH);  // Turn LED ON
+        digitalWrite(ledPin, HIGH);  // Zet de LED aan
+      } else if (receivedValue == 0) {
+        digitalWrite(ledPin, LOW);   // Zet de LED uit
       } else {
-        digitalWrite(ledPin, LOW);   // Turn LED OFF
+        Serial.println("Received value is not valid."); // Voorwaarde voor ongeldige waarden
       }
     }
   }
