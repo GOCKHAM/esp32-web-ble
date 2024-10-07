@@ -53,7 +53,7 @@ BLECharacteristic* pCharacteristic = NULL;
 #define DHTPIN D10
 #define DHTTYPE DHT22
 unsigned long lastTempMillis = 0;
-const long TEMP_INTERVAL = 900000; // 15 minuten meting
+const long TEMP_INTERVAL = 5000; // 15 minuten meting
 float temp;
 DHT dht(DHTPIN, DHTTYPE);
 
