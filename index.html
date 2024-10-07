@@ -61,7 +61,7 @@ connectButton.addEventListener('click', connectToDevice);
 disconnectButton.addEventListener('click', disconnectDevice);
 
 // Measure Button
-measureButton.addEventListener('click', () => writeOnCharacteristic(1));
+measureButton.addEventListener('click', writeOnCharacteristic);
 
 // Check if BLE is available in your Browser
 function isWebBluetoothEnabled() {
@@ -130,26 +130,22 @@ function handleCharacteristicChange(event) {
     timestampContainer.innerHTML = getDateTime();
 }
 
-function writeOnCharacteristic(value) { 
+function writeOnCharacteristic() {
+    // Send a command to measure temperature
     if (bleServer && bleServer.connected) {
-        // Assuming `sensorCharacteristicFound` holds the temperature characteristic
-        bleServiceFound.getCharacteristic(sensorCharacteristic)
-        .then(characteristic => {
-            console.log("Found the temperature characteristic: ", characteristic.uuid);
-            const data = new Uint8Array([value]);  // '1' initiates temperature measurement
-            return characteristic.writeValue(data);
-        })
-        .then(() => {
-            console.log("Value written to temperature characteristic:", value);
-            // Optionally update UI or display the latest sent value
-            window.alert("Temperature measurement command sent successfully!");
-        })
-        .catch(error => {
-            console.error("Error writing to the temperature characteristic: ", error);
-        });
+        if (sensorCharacteristicFound) {
+            const data = new Uint8Array([1]);  // Assuming '1' initiates a temperature measurement
+            sensorCharacteristicFound.writeValue(data)
+                .then(() => {
+                    console.log("Measurement command sent.");
+                })
+                .catch(error => {
+                    console.error("Error sending measurement command: ", error);
+                });
+        }
     } else {
-        console.error("Bluetooth is not connected. Cannot write to characteristic.");
-        window.alert("Bluetooth is not connected. Cannot write to characteristic. \n Connect to BLE first!");
+        console.error("Bluetooth is not connected. Cannot send measurement command.")
+        window.alert("Bluetooth is not connected. Cannot send measurement command. \n Connect to BLE first!")
     }
 }
 
