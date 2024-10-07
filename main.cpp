@@ -1,127 +1,127 @@
-/*
-  Rui Santos & Sara Santos - Random Nerd Tutorials
-  Complete project details at https://RandomNerdTutorials.com/esp32-web-bluetooth/
-  Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files.
-  The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-*/
-#include <BLEDevice.h>
-#include <BLEServer.h>
-#include <BLEUtils.h>
-#include <BLE2902.h>
+#include <Arduino.h>
+#include <DHT.h>
+#include <Wire.h>
+#include <U8g2lib.h>
+#include <WiFi.h>
+#include <WebServer.h>
+#include <credentialss.h>
+#include <Adafruit_Sensor.h>
 
-BLEServer* pServer = NULL;
-BLECharacteristic* pSensorCharacteristic = NULL;
-BLECharacteristic* pLedCharacteristic = NULL;
-bool deviceConnected = false;
-bool oldDeviceConnected = false;
-uint32_t value = 0;
+// ------------------------------------------------------------------------------------------------------------------------------
+// OLED Display instellingen
+#define SCREEN_WIDTH 128
+#define SCREEN_HEIGHT 64
+#define OLED_RESET -1
 
-const int ledPin = 2; // Use the appropriate GPIO pin for your setup
+// SDA en SCL pinnen instellen
+#define SDA_PIN 21   
+#define SCL_PIN 22  
 
-#define SERVICE_UUID        "19b10000-e8f2-537e-4f6c-d104768a1214"
-#define SENSOR_CHARACTERISTIC_UUID "19b10001-e8f2-537e-4f6c-d104768a1214"
-#define LED_CHARACTERISTIC_UUID "19b10002-e8f2-537e-4f6c-d104768a1214"
+U8G2_SSD1306_128X64_NONAME_F_SW_I2C u8g2(U8G2_R0, SCL, SDA, U8X8_PIN_NONE);
 
-class MyServerCallbacks: public BLEServerCallbacks {
-  void onConnect(BLEServer* pServer) {
-    deviceConnected = true;
-  };
+// ------------------------------------------------------------------------------------------------------------------------------
+#define ROOD  13    
+#define GROEN  14    
+#define GEEL  26 
 
-  void onDisconnect(BLEServer* pServer) {
-    deviceConnected = false;
-  }
-};
+#define Drukknop  12
+#define buzzerpin 16
 
-class MyCharacteristicCallbacks : public BLECharacteristicCallbacks {
-  void onWrite(BLECharacteristic* pLedCharacteristic) {
-    std::string value = pLedCharacteristic->getValue(); // Gebruik std::string hier
-    if (value.length() > 0) {
-      Serial.print("Characteristic event, written: ");
-      Serial.println(value.c_str()); // Print de geschreven waarde
+int buttonState = 0;
+int lastButtonState = 0; 
+bool metingGestart = false; // Controleer of een meting is gestart via de knop
 
-      // Controleer op "ON" of "OFF" om de LED te bedienen
-      if (value == "ON") {
-        digitalWrite(ledPin, HIGH); // Zet de LED aan
-        Serial.println("LED is ON");
-      } else if (value == "OFF") {
-        digitalWrite(ledPin, LOW); // Zet de LED uit
-        Serial.println("LED is OFF");
-      }
-    }
-  }
-};
+// ------------------------------------------------------------------------------------------------------------------------------
 
+// TEMPERATUURGEGEVENS:
+#define DHTPIN D10
+#define DHTTYPE DHT22
+unsigned long lastTempMillis = 0;
+const long TEMP_INTERVAL = 900000; // 15 minuten meting
+float temp;
+DHT dht(DHTPIN, DHTTYPE);
+
+// Web server
+WebServer server(80);
+
+// Function prototypes
+void handleRoot();
+void handleTemperature();
+void meetTemperatuur();
+
+// ------------------------------------------------------------------------------------------------------------------------------
 void setup() {
+  
+  pinMode(ROOD, OUTPUT);
+  pinMode(GROEN, OUTPUT);
+  pinMode(GEEL, OUTPUT);
+  pinMode(Drukknop, INPUT);
+  pinMode(buzzerpin, OUTPUT);
   Serial.begin(115200);
-  pinMode(ledPin, OUTPUT);
 
-  // Create the BLE Device
-  BLEDevice::init("ESP32");
+  dht.begin();
+  u8g2.begin();
 
-  // Create the BLE Server
-  pServer = BLEDevice::createServer();
-  pServer->setCallbacks(new MyServerCallbacks());
+  // Wi-Fi verbinden
+  WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+  Serial.print("Connecting to Wi-Fi");
+  while (WiFi.status() != WL_CONNECTED) {
+    Serial.print(".");
+    delay(500);
+  }
+  digitalWrite(GEEL, HIGH);  // Geel LED aan wanneer verbonden met Wi-Fi
 
-  // Create the BLE Service
-  BLEService *pService = pServer->createService(SERVICE_UUID);
+  Serial.println();
+  Serial.print("Connected with IP: ");
+  Serial.println(WiFi.localIP());
 
-  // Create a BLE Characteristic
-  pSensorCharacteristic = pService->createCharacteristic(
-                      SENSOR_CHARACTERISTIC_UUID,
-                      BLECharacteristic::PROPERTY_READ   |
-                      BLECharacteristic::PROPERTY_WRITE  |
-                      BLECharacteristic::PROPERTY_NOTIFY |
-                      BLECharacteristic::PROPERTY_INDICATE
-                    );
-
-  // Create the LED control Characteristic
-  pLedCharacteristic = pService->createCharacteristic(
-                      LED_CHARACTERISTIC_UUID,
-                      BLECharacteristic::PROPERTY_WRITE
-                    );
-
-  // Register the callback for the LED control characteristic
-  pLedCharacteristic->setCallbacks(new MyCharacteristicCallbacks());
-
-  // Add descriptors for the characteristics
-  pSensorCharacteristic->addDescriptor(new BLE2902());
-  pLedCharacteristic->addDescriptor(new BLE2902());
-
-  // Start the service
-  pService->start();
-
-  // Start advertising
-  BLEAdvertising *pAdvertising = BLEDevice::getAdvertising();
-  pAdvertising->addServiceUUID(SERVICE_UUID);
-  pAdvertising->setScanResponse(false);
-  pAdvertising->setMinPreferred(0x0);  // set value to 0x00 to not advertise this parameter
-  BLEDevice::startAdvertising();
-  Serial.println("Waiting a client connection to notify...");
+  // Webserver endpoints
+  server.on("/", HTTP_GET, handleRoot);
+  server.on("/temperature", HTTP_GET, handleTemperature);
+  server.begin();
 }
 
+// ------------------------------------------------------------------------------------------------------------------------------
+void handleRoot() {
+  server.sendHeader("Connection", "close");
+  server.send(200, "text/html", "<html><body><h1>Welcome to the ESP32 Web Server</h1></body></html>");
+}
+
+void handleTemperature() {
+  float currentTemp = dht.readTemperature();
+  String response = String("Temperature: ") + currentTemp + " °C";
+  server.send(200, "text/plain", response);
+}
+
+// ------------------------------------------------------------------------------------------------------------------------------
+void meetTemperatuur() {
+  temp = dht.readTemperature();
+  
+  // Print temperatuur naar Serial Monitor
+  Serial.print("Temperatuur: ");
+  Serial.print(temp);
+  Serial.println(" °C");
+}
+
+// ------------------------------------------------------------------------------------------------------------------------------
 void loop() {
-  // Notify changed value
-  if (deviceConnected) {
-    pSensorCharacteristic->setValue(String(value).c_str());
-    pSensorCharacteristic->notify();
-    value++;
-    Serial.print("New value notified: ");
-    Serial.println(value);
-    delay(3000); // avoid congestion in the bluetooth stack
+  // Handle client requests
+  server.handleClient();
+
+  // TEMPERATUUR MET LEDJES EN BUZZER CODE VIA TIMER:
+  if (millis() - lastTempMillis >= TEMP_INTERVAL) {   // Meet elke 15 minuten
+    lastTempMillis = millis();
+    meetTemperatuur(); // Voer meting uit
   }
-  
-  // Disconnecting
-  if (!deviceConnected && oldDeviceConnected) {
-    Serial.println("Device disconnected.");
-    delay(500); // give the bluetooth stack the chance to get things ready
-    pServer->startAdvertising(); // restart advertising
-    Serial.println("Start advertising");
-    oldDeviceConnected = deviceConnected;
-  }
-  
-  // Connecting
-  if (deviceConnected && !oldDeviceConnected) {
-    oldDeviceConnected = deviceConnected;
-    Serial.println("Device Connected");
+
+  // Controleer op knopdruk om meting direct te starten
+  buttonState = digitalRead(Drukknop);
+  if (buttonState == HIGH && lastButtonState == LOW) {  
+    Serial.println("Knop ingedrukt, meting gestart!");
+    meetTemperatuur();  // Start meting direct
+    lastTempMillis = millis();  
+    lastButtonState = HIGH;  
+  } else if (buttonState == LOW) {
+    lastButtonState = LOW;  
   }
 }
