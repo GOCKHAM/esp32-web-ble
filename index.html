@@ -35,94 +35,103 @@
     </div>
 
     <script>
-        // DOM-elementen
-        const connectButton = document.getElementById('connectBleButton');
-        const disconnectButton = document.getElementById('disconnectBleButton');
-        const retrievedValue = document.getElementById('temperatuur');
-        const bleStateContainer = document.getElementById('bleState');
+// DOM-elementen
+const connectButton = document.getElementById('connectBleButton');
+const disconnectButton = document.getElementById('disconnectBleButton');
+const retrievedValue = document.getElementById('temperatuur');
+const bleStateContainer = document.getElementById('bleState');
+const meetTempButton = document.getElementById('meetTempButton'); // Nieuwe knop voor temperatuurmeting
 
-        // BLE Device Specificaties
-        const deviceName = 'ESP32SINS';
-        const bleService = 'c203e7c5-dfc4-46d2-a524-f3c41761a4ea';
-        const sensorCharacteristic = 'f4f7de75-c2da-4234-93ef-17fcb04d3674';
+// BLE Device Specificaties
+const deviceName = 'ESP32SINS';
+const bleService = 'c203e7c5-dfc4-46d2-a524-f3c41761a4ea';
+const sensorCharacteristic = 'f4f7de75-c2da-4234-93ef-17fcb04d3674';
 
-        // Global Variables
-        let bleServer;
-        let sensorCharacteristicFound;
+// Global Variables
+let bleServer;
+let sensorCharacteristicFound;
 
-        // Connect Button
-        connectButton.addEventListener('click', connectToDevice);
+// Event Listener voor connect/disconnect
+connectButton.addEventListener('click', connectToDevice);
+disconnectButton.addEventListener('click', disconnectDevice);
 
-        // Disconnect Button
-        disconnectButton.addEventListener('click', disconnectDevice);
+// Event Listener voor het ophalen van temperatuurdata
+meetTempButton.addEventListener('click', function() {
+    if (sensorCharacteristicFound) {
+        // Temperatuur opvragen via BLE
+        sensorCharacteristicFound.readValue().then(value => {
+            const temp = new TextDecoder().decode(value);
+            console.log("Ontvangen temperatuur:", temp);
+            retrievedValue.innerText = temp; // Update temperatuur op webpagina
+            addToHistorie(temp); // Voeg temperatuur toe aan de historie
+        }).catch(error => {
+            console.error('Fout bij het opvragen van temperatuur:', error);
+        });
+    } else {
+        console.error('Geen BLE apparaat verbonden of kenmerk gevonden.');
+        window.alert("Verbind eerst met een BLE-apparaat.");
+    }
+});
 
-        // Connect to BLE Device
-        function connectToDevice() {
-            console.log('Verbinden met Bluetooth...');
-            navigator.bluetooth.requestDevice({
-                filters: [{ name: deviceName }],
-                optionalServices: [bleService]
-            })
-            .then(device => {
-                console.log('Apparaat geselecteerd:', device.name);
-                bleStateContainer.innerHTML = 'Verbonden met ' + device.name;
-                bleStateContainer.style.color = "#24af37";
-                device.addEventListener('gattservicedisconnected', onDisconnected);
-                return device.gatt.connect();
-            })
-            .then(gattServer => {
-                bleServer = gattServer;
-                console.log("Verbonden met GATT Server");
-                return bleServer.getPrimaryService(bleService);
-            })
-            .then(service => {
-                console.log("Service ontdekt:", service.uuid);
-                return service.getCharacteristic(sensorCharacteristic);
-            })
-            .then(characteristic => {
-                console.log("Kenmerk ontdekt:", characteristic.uuid);
-                sensorCharacteristicFound = characteristic;
-                characteristic.startNotifications();
-                characteristic.addEventListener('characteristicvaluechanged', handleCharacteristicChange);
-                console.log("Notificaties gestart.");
-            })
-            .catch(error => {
-                console.error('Fout:', error);
-            });
-        }
+// Connect to BLE Device
+function connectToDevice() {
+    console.log('Verbinden met Bluetooth...');
+    navigator.bluetooth.requestDevice({
+        filters: [{ name: deviceName }],
+        optionalServices: [bleService]
+    })
+    .then(device => {
+        console.log('Apparaat geselecteerd:', device.name);
+        bleStateContainer.innerHTML = 'Verbonden met ' + device.name;
+        bleStateContainer.style.color = "#24af37";
+        device.addEventListener('gattservicedisconnected', onDisconnected);
+        return device.gatt.connect();
+    })
+    .then(gattServer => {
+        bleServer = gattServer;
+        console.log("Verbonden met GATT Server");
+        return bleServer.getPrimaryService(bleService);
+    })
+    .then(service => {
+        console.log("Service ontdekt:", service.uuid);
+        return service.getCharacteristic(sensorCharacteristic);
+    })
+    .then(characteristic => {
+        console.log("Kenmerk ontdekt:", characteristic.uuid);
+        sensorCharacteristicFound = characteristic;
+    })
+    .catch(error => {
+        console.error('Fout:', error);
+    });
+}
 
-        function onDisconnected(event) {
-            console.log('Apparaat ontkoppeld:', event.target.device.name);
-            bleStateContainer.innerHTML = "Apparaat ontkoppeld";
-            bleStateContainer.style.color = "#d13a30";
-        }
+function onDisconnected(event) {
+    console.log('Apparaat ontkoppeld:', event.target.device.name);
+    bleStateContainer.innerHTML = "Apparaat ontkoppeld";
+    bleStateContainer.style.color = "#d13a30";
+}
 
-        function handleCharacteristicChange(event) {
-            const newValueReceived = new TextDecoder().decode(event.target.value);
-            console.log("Waarde veranderd:", newValueReceived);
-            retrievedValue.innerText = newValueReceived;
-            addToHistorie(newValueReceived);
-        }
+// Functie om temperatuur toe te voegen aan de historie
+function addToHistorie(temperatuur) {
+    const lijstElement = document.getElementById('historieLijst');
+    const lijstItem = document.createElement('li');
+    lijstItem.textContent = `Laatste meting: ${temperatuur} °C`;
+    lijstElement.appendChild(lijstItem);
+}
 
-        function addToHistorie(temperatuur) {
-            const lijstElement = document.getElementById('historieLijst');
-            const lijstItem = document.createElement('li');
-            lijstItem.textContent = `Laatste meting: ${temperatuur} °C`;
-            lijstElement.appendChild(lijstItem);
-        }
+function disconnectDevice() {
+    console.log("Ontkoppel apparaat.");
+    if (bleServer && bleServer.connected) {
+        bleServer.disconnect();
+        console.log("Apparaat ontkoppeld");
+        bleStateContainer.innerHTML = "Apparaat ontkoppeld";
+        bleStateContainer.style.color = "#d13a30";
+    } else {
+        console.error("Bluetooth is niet verbonden.");
+        window.alert("Bluetooth is niet verbonden.");
+    }
+}
 
-        function disconnectDevice() {
-            console.log("Ontkoppel apparaat.");
-            if (bleServer && bleServer.connected) {
-                bleServer.disconnect();
-                console.log("Apparaat ontkoppeld");
-                bleStateContainer.innerHTML = "Apparaat ontkoppeld";
-                bleStateContainer.style.color = "#d13a30";
-            } else {
-                console.error("Bluetooth is niet verbonden.");
-                window.alert("Bluetooth is niet verbonden.");
-            }
-        }
     </script>
 </body>
 </html>
