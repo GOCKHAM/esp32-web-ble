@@ -1,4 +1,3 @@
-
 /* Algemene stijl voor de gehele pagina */
 body {
     font-family: 'Arial', sans-serif;
@@ -9,8 +8,8 @@ body {
     margin: 0;
     padding: 0;
     display: flex;
-    justify-content: center;
-    align-items: center;
+    flex-direction: column; /* Veranderd naar een kolomindeling */
+    align-items: center; /* Centreert de inhoud horizontaal */
     height: 100vh;
 }
 
@@ -64,14 +63,14 @@ h3 {
     background-color: #45a049;
 }
 
-/* Stijlen voor de gemeten temperatuur */
+/* Stijlen voor de temperatuurgegevens */
 #temperatuurResultaat {
     font-size: 20px;
     color: #333;
     margin-top: 20px;
 }
 
-/* Stijlen voor de temperatuurgeschiedenis */
+/* Stijlen voor de temperatuurhistorie */
 #temperatuurHistorie {
     margin-top: 30px;
     text-align: left;
@@ -93,3 +92,7 @@ h3 {
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
+/* Stijlen voor BLE status */
+.gray-label {
+    color: #777;
+}
