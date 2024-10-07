@@ -1,103 +1,73 @@
-html {
-    font-family: Arial, Helvetica, sans-serif;
-    display: inline-block;
-    text-align: center;
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-image: url('https://rewildingeurope.com/wp-content/uploads/2021/11/RS1765_SBA_2011-07-30_070027-low-1202x800.jpg');
+    background-size: cover;
+    background-position: center;
+    color: #fff;
 }
 
-body {
-    margin: 0;
-    background-image: url('https://png.pngtree.com/template/20221207/ourmid/pngtree-neon-led-light-lines-in-hexagonal-shape-banner-image_1917033.jpg');
-    background-size: cover; /* Zorg ervoor dat de afbeelding de hele achtergrond bedekt */
-    background-repeat: no-repeat; /* Voorkom herhaling van de afbeelding */
+.container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    backdrop-filter: blur(5px);
 }
 
 h1 {
-    font-size: 1.8rem;
-    color: white;
+    font-size: 2.5em;
+    margin-bottom: 20px;
+    text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.7);
 }
 
-.topnav {
-    overflow: hidden;
-    background-color: #0A1128;
+.ble-status, .temperature-info {
+    background: rgba(0, 0, 0, 0.6);
+    padding: 20px;
+    border-radius: 10px;
+    margin: 10px;
+    text-align: center;
+    width: 80%;
+    max-width: 500px;
 }
 
-.content {
-    padding: 50px;
-}
-
-.card-grid {
-    max-width: 800px;
-    margin: 0 auto;
-    margin-bottom: 30px;
-    display: grid;
-    grid-gap: 2rem;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-}
-
-.card {
-    background-color: white;
-    box-shadow: 2px 2px 12px 1px rgba(140,140,140,.5);
-}
-
-.switch {
-    position: relative;
-    display: inline-block;
-    width: 60px;
-    height: 34px;
-}
-
-.switch input {
-    opacity: 0;
-    width: 0;
-    height: 0;
-}
-
-.slider {
-    position: absolute;
+.btn {
+    padding: 10px 20px;
+    margin: 10px;
+    font-size: 1.2em;
     cursor: pointer;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: #ccc;
-    transition: .4s;
-    border-radius: 34px;
+    border-radius: 5px;
+    border: none;
+    color: white;
+    background-color: #4CAF50;
+    transition: background-color 0.3s ease;
 }
 
-.slider:before {
-    position: absolute;
-    content: "";
-    height: 26px;
-    width: 26px;
-    left: 4px;
-    bottom: 4px;
-    background-color: white;
-    transition: .4s;
-    border-radius: 50%;
+.btn:hover {
+    background-color: #45a049;
 }
 
-input:checked + .slider {
-    background-color: #1b8a94;
+.btn-disable {
+    background-color: #f44336;
 }
 
-input:checked + .slider:before {
-    transform: translateX(26px);
+.btn-disable:hover {
+    background-color: #e53935;
 }
 
-.led-symbol {
-    width: 50px; /* Breedte van het LED-symbool */
-    height: 50px; /* Hoogte van het LED-symbool */
-    border-radius: 50%; /* Maak het rond */
-    background-color: gray; /* Begin met een grijze kleur */
-    margin: 20px auto; /* Centreer het symbool */
-    transition: background-color 0.3s; /* Voeg een overgang toe voor een soepel effect */
+.ble-state {
+    margin-top: 20px;
+    font-size: 1.5em;
+    font-weight: bold;
 }
 
-.gray-label {
-    color: #bebebe;
-    font-size: 1rem;
+.temp-value, .date-time {
+    font-size: 1.2em;
+    margin-top: 15px;
 }
 
-.reading {
-    font-size: 1.8rem;
+.date-time {
+    margin-top: 30px;
 }
