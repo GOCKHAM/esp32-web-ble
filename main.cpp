@@ -216,7 +216,7 @@ void loop() {
     if (millis() - lastTempMillis >= TEMP_INTERVAL) {   
         lastTempMillis = millis();
         meetTemperatuurEnGeefReactie(); // Voer meting uit
-        tempSent = false; // Reset de verzendstatus
+        // tempSent = false; // Reset de verzendstatus
     }
 
     // Controleer op knopdruk om meting direct te starten
@@ -226,7 +226,7 @@ void loop() {
         meetTemperatuurEnGeefReactie();  // Start meting direct
         lastTempMillis = millis();  
         lastButtonState = HIGH; 
-        tempSent = false; 
+        // tempSent = false; 
     } else if (buttonState == LOW) {
         lastButtonState = LOW;  
     }
