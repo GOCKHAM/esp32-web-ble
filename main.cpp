@@ -53,7 +53,7 @@ BLECharacteristic* pCharacteristic = NULL;
 #define DHTPIN D10
 #define DHTTYPE DHT22
 unsigned long lastTempMillis = 0;
-const long TEMP_INTERVAL = 900000; // 15 minuten meting
+const long TEMP_INTERVAL = 5000; // 15 minuten meting
 float temp;
 DHT dht(DHTPIN, DHTTYPE);
 
@@ -230,21 +230,26 @@ void loop() {
 
     // Handle BLE connectiviteit
     if (deviceConnected) {
-        char tempStr[8];
-        dtostrf(temp, 4, 2, tempStr);
-        pCharacteristic->setValue(tempStr); // Converteer temp naar string
-        pCharacteristic->notify();
-        delay(500); // Rustig aan voor de BLE notificaties
-
-        if (!oldDeviceConnected) {
-            oldDeviceConnected = deviceConnected;
-        }
+        String tempStr = String(temp); // Zet de gemeten temperatuur om in een string
+        pCharacteristic->setValue(tempStr.c_str()); // Stuur de temperatuurwaarde naar BLE-characteristic
+        pCharacteristic->notify(); // Verstuur de update
+        Serial.println("Temperatuur verzonden via BLE: " + tempStr);
+        delay(3000); // Voorkom dat de BLE-stack overbelast raakt
     }
-    
+
+    // Verwerking van disconnect
     if (!deviceConnected && oldDeviceConnected) {
-        delay(500); // Geef de BLE client tijd om zich los te koppelen
-        pServer->startAdvertising(); // Advertiseer opnieuw
-        Serial.println("Opnieuw aan het adverteren");
+        Serial.println("Een apparaat is losgekoppeld van BLE");
+        delay(500);
+        pServer->startAdvertising();
+        Serial.println("Start advertising");
         oldDeviceConnected = deviceConnected;
     }
+
+    // Verwerking van connectie
+    if (deviceConnected && !oldDeviceConnected) {
+        oldDeviceConnected = deviceConnected;
+        Serial.println("Een apparaat is verbonden via BLE");
+    }
 }
+
