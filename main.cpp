@@ -245,6 +245,20 @@ void BLE_sturen() {
         oldDeviceConnected = deviceConnected;
         Serial.println("Een apparaat is verbonden via BLE");
     }
+
+    // Check of de ESP32 via BLE verbonden is en of de knop op de website is gebruikt om een nieuwe meting te activeren
+    if (deviceConnected && !tempSent) {
+        // Lees de temperatuur van de DHT sensor
+        temp = dht.readTemperature();
+        
+        // Stuur de temperatuur via BLE
+        char tempString[8];
+        dtostrf(temp, 6, 2, tempString);
+        pCharacteristic->setValue(tempString);  // Verstuur de temperatuur als een string
+        pCharacteristic->notify();  // Stuur de nieuwe waarde naar de website
+        tempSent = true;  // Markeer dat de temperatuur verzonden is
+        delay(2000);  // Voorkom dat het te vaak herhaald wordt
+    }
 }
 // ------------------------------------------------------------------------------------------------------------------------------
 void loop() {
