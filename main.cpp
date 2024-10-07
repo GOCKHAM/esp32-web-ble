@@ -45,9 +45,13 @@ bool tempSent = false;
 BLEServer* pServer = NULL;
 bool deviceConnected = false;
 bool oldDeviceConnected = false;
-const char* serviceUUID = "c203e7c5-dfc4-46d2-a524-f3c41761a4ea"; // Unique service UUID
-const char* characteristicUUID = "f4f7de75-c2da-4234-93ef-17fcb04d3674"; // Unique characteristic UUID
 BLECharacteristic* pCharacteristic = NULL;
+BLECharacteristic* pLedCharacteristic = NULL;
+uint32_t value = 0;
+#define serviceUUID "c203e7c5-dfc4-46d2-a524-f3c41761a4ea"  // Unique service UUID
+#define characteristicUUID  "f4f7de75-c2da-4234-93ef-17fcb04d3674" // Unique characteristic UUID
+#define LED_CHARACTERISTIC_UUID "19b10002-e8f2-537e-4f6c-d104768a1214"
+
 
 unsigned long lastBLEMillis = 0; // Tijdstempel van de laatste BLE-update
 const long BLE_INTERVAL = 3000;  // 3 seconden interval
@@ -72,6 +76,22 @@ class MyServerCallbacks : public BLEServerCallbacks {
         deviceConnected = false;
     }
 };
+
+// ------------------------------------------------------------------------------------------------------------------------------
+class MyCharacteristicCallbacks : public BLECharacteristicCallbacks {
+  void onWrite(BLECharacteristic* pLedCharacteristic) {
+    std::string ledvalue  = pLedCharacteristic->getValue(); 
+    String value = String(ledvalue.c_str());
+    if (value.length() > 0) {
+      Serial.print("Characteristic event, written: ");
+      Serial.println(static_cast<int>(value[0])); // Print the integer value
+
+      int receivedValue = static_cast<int>(value[0]);
+      if (receivedValue == 1) {
+        temp = dht.readTemperature();
+    }
+  }
+}};
 
 // ------------------------------------------------------------------------------------------------------------------------------
 void setup() {
@@ -124,8 +144,18 @@ void setup() {
         BLECharacteristic::PROPERTY_INDICATE
     );
 
+  // Create the ON button Characteristic
+  pLedCharacteristic = pService->createCharacteristic(
+                      LED_CHARACTERISTIC_UUID,
+                      BLECharacteristic::PROPERTY_WRITE
+                    );
+
+   // Register the callback for the ON button characteristic
+     pLedCharacteristic->setCallbacks(new MyCharacteristicCallbacks());
+
     // Create a BLE Descriptor
     pCharacteristic->addDescriptor(new BLE2902());
+    pLedCharacteristic->addDescriptor(new BLE2902());
 
     // Start the service
     pService->start();
@@ -138,6 +168,7 @@ void setup() {
     BLEDevice::startAdvertising();
     Serial.println("BLE gestart");
 }
+
 
 // ------------------------------------------------------------------------------------------------------------------------------
 // Functie om zowel LED als buzzer tegelijkertijd te laten werken
@@ -246,19 +277,8 @@ void BLE_sturen() {
         Serial.println("Een apparaat is verbonden via BLE");
     }
 
-    // Check of de ESP32 via BLE verbonden is en of de knop op de website is gebruikt om een nieuwe meting te activeren
-    if (deviceConnected && !tempSent) {
-        // Lees de temperatuur van de DHT sensor
-        temp = dht.readTemperature();
-        
-        // Stuur de temperatuur via BLE
-        char tempString[8];
-        dtostrf(temp, 6, 2, tempString);
-        pCharacteristic->setValue(tempString);  // Verstuur de temperatuur als een string
-        pCharacteristic->notify();  // Stuur de nieuwe waarde naar de website
-        tempSent = true;  // Markeer dat de temperatuur verzonden is
-        delay(2000);  // Voorkom dat het te vaak herhaald wordt
-    }
+  
+    
 }
 // ------------------------------------------------------------------------------------------------------------------------------
 void loop() {
@@ -283,17 +303,4 @@ void loop() {
 
 BLE_sturen();
 
-    // Zorg ervoor dat je hier de ontvangen waarde afhandelt.
-    if (deviceConnected) {
-        if (pCharacteristic->getValue() == "1") {
-            // Start een nieuwe temperatuurmeting
-            meetTemperatuurEnGeefReactie(); // Zorgt ervoor dat er een nieuwe meting wordt gedaan
-            
-            // Update de BLE met de nieuwe temperatuurwaarde
-            pCharacteristic->setValue(String(temp).c_str());
-            pCharacteristic->notify();  // Stuur de waarde naar de verbonden client
-            Serial.println("Nieuwe temperatuur verzonden via BLE");
-        }
-    }
 }
-
