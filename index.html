@@ -41,6 +41,7 @@ const connectButton = document.getElementById('connectBleButton');
 const disconnectButton = document.getElementById('disconnectBleButton');
 const measureButton = document.getElementById('measureButton');
 const retrievedValue = document.getElementById('valueContainer');
+const latestValueSent = document.getElementById('valueSent');
 const bleStateContainer = document.getElementById('bleState');
 const timestampContainer = document.getElementById('timestamp');
 
@@ -62,11 +63,8 @@ connectButton.addEventListener('click', connectToDevice);
 disconnectButton.addEventListener('click', disconnectDevice);
 
 // Measure Button
-measureButton.addEventListener('click', () => {
-    writeOnCharacteristic(1); // Only call this function once for measuring temperature
-});
 
-// measureButton.addEventListener('click', () => writeOnCharacteristic(0));
+measureButton.addEventListener('click', () => writeOnCharacteristic(1));
 
 // Check if BLE is available in your Browser
 function isWebBluetoothEnabled() {
@@ -114,6 +112,7 @@ function connectToDevice() {
     .then(value => {
         console.log("Read value: ", value);
         const decodedValue = new TextDecoder().decode(value);
+        console.log("Decoded value: ", decodedValue);
         retrievedValue.innerHTML = decodedValue;
     })
     .catch(error => {
