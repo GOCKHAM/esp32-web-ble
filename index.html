@@ -1,25 +1,43 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="nl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ESP32 Web BLE Application</title>
     <link rel="stylesheet" href="styles.css">
+    <title>ESP32 Web BLE Application</title>
 </head>
 <body>
     <div class="container">
         <h1>ESP32 Web BLE Application</h1>
-
-        <div class="ble-status">
-            <button class="btn" id="btnEnable" onclick="toggleBluetooth(true)">Enable Bluetooth</button>
-            <button class="btn btn-disable" id="btnDisable" onclick="toggleBluetooth(false)">Disable Bluetooth</button>
-            <div class="ble-state" id="bleState">BLE state: Disconnected</div>
+        <div class="ble-controls">
+            <h2>BLE Controls</h2>
+            <button id="ble-on">Bluetooth Aan</button>
+            <button id="ble-off">Bluetooth Uit</button>
+            <p id="ble-status">BLE status: Disconnected</p>
         </div>
-
         <div class="temperature-info">
-            <div class="temp-value" id="temperature">Temperature: -- °C</div>
-            <div class="date-time" id="dateTime">Date & Time: --</div>
+            <h2>Temperatuur Gegevens</h2>
+            <p id="temperature">Temperatuur: -- °C</p>
+            <p id="timestamp">Tijd: --</p>
         </div>
     </div>
+    <script>
+        // Simuleer Bluetooth en temperatuurgegevens
+        document.getElementById('ble-on').addEventListener('click', function() {
+            document.getElementById('ble-status').innerText = 'BLE status: Connected';
+        });
+
+        document.getElementById('ble-off').addEventListener('click', function() {
+            document.getElementById('ble-status').innerText = 'BLE status: Disconnected';
+        });
+
+        // Voor het simuleren van temperatuurdata en tijd
+        setInterval(function() {
+            const temp = (Math.random() * 30).toFixed(1); // Simuleer een temperatuur tussen 0 en 30 °C
+            const now = new Date();
+            document.getElementById('temperature').innerText = 'Temperatuur: ' + temp + ' °C';
+            document.getElementById('timestamp').innerText = 'Tijd: ' + now.toLocaleString();
+        }, 5000); // Update elke 5 seconden
+    </script>
 </body>
 </html>
