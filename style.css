@@ -1,45 +1,95 @@
+
+/* Algemene stijl voor de gehele pagina */
 body {
-    font-family: Arial, sans-serif;
-    background-image: url('https://rewildingeurope.com/wp-content/uploads/2021/11/RS1765_SBA_2011-07-30_070027-low-1202x800.jpg');
-    background-size: cover;
-    color: white;
-    text-align: center;
+    font-family: 'Arial', sans-serif;
+    background-image: url('https://rewildingeurope.com/wp-content/uploads/2021/11/RS1765_SBA_2011-07-30_070027-low-1202x800.jpg'); /* Verwijzing naar de afbeelding */
+    background-size: cover; /* Zorgt ervoor dat de afbeelding de hele pagina bedekt */
+    background-position: center; /* Zorgt ervoor dat de afbeelding gecentreerd wordt */
+    background-repeat: no-repeat; /* Voorkomt dat de afbeelding herhaald wordt */
     margin: 0;
     padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
 }
 
 .container {
-    background-color: rgba(0, 0, 0, 0.7);
-    border-radius: 10px;
-    padding: 20px;
-    margin: 50px auto;
-    width: 300px;
-    box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+    background-color: rgba(255, 255, 255, 0.9); /* Semi-transparante witte achtergrond zodat de inhoud leesbaar blijft */
+    border-radius: 8px;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+    padding: 40px;
+    max-width: 600px;
+    text-align: center;
 }
 
-h1, h2 {
-    margin: 10px 0;
+h1 {
+    font-size: 28px;
+    color: #333;
+    margin-bottom: 10px;
 }
 
-button {
-    background-color: #28a745;
+h2 {
+    font-size: 22px;
+    color: #555;
+    margin-bottom: 20px;
+}
+
+h3 {
+    font-size: 20px;
+    color: #333;
+    margin-top: 30px;
+}
+
+/* Stijlen voor de knoppen */
+.button-container {
+    display: flex;
+    justify-content: space-around;
+    margin-bottom: 20px;
+}
+
+.control-button {
+    padding: 15px 30px;
+    font-size: 16px;
+    background-color: #4CAF50;
     color: white;
     border: none;
     border-radius: 5px;
-    padding: 10px;
     cursor: pointer;
-    margin: 5px 0;
     transition: background-color 0.3s;
+    margin: 0 20px;
 }
 
-button:hover {
-    background-color: #218838;
+.control-button:hover {
+    background-color: #45a049;
 }
 
-button:active {
-    background-color: #1e7e34;
+/* Stijlen voor de gemeten temperatuur */
+#temperatuurResultaat {
+    font-size: 20px;
+    color: #333;
+    margin-top: 20px;
 }
 
-p {
-    margin: 5px 0;
+/* Stijlen voor de temperatuurgeschiedenis */
+#temperatuurHistorie {
+    margin-top: 30px;
+    text-align: left;
 }
+
+#historieLijst {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+}
+
+#historieLijst li {
+    background-color: #f4f4f4;
+    margin-bottom: 10px;
+    padding: 10px;
+    border-radius: 4px;
+    font-size: 16px;
+    color: #333;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
