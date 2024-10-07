@@ -107,8 +107,11 @@ void setup() {
     BLEService *pService = pServer->createService(serviceUUID);
     pCharacteristic = pService->createCharacteristic(
         characteristicUUID,
-        BLECharacteristic::PROPERTY_READ | BLECharacteristic::PROPERTY_WRITE
-    );
+        BLECharacteristic::PROPERTY_READ | 
+        BLECharacteristic::PROPERTY_WRITE |
+        BLECharacteristic::PROPERTY_NOTIFY
+);
+
     pService->start();
     BLEAdvertising *pAdvertising = pServer->getAdvertising();
     pAdvertising->start();
