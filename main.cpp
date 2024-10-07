@@ -49,6 +49,9 @@ const char* serviceUUID = "c203e7c5-dfc4-46d2-a524-f3c41761a4ea"; // Unique serv
 const char* characteristicUUID = "f4f7de75-c2da-4234-93ef-17fcb04d3674"; // Unique characteristic UUID
 BLECharacteristic* pCharacteristic = NULL;
 
+unsigned long lastBLEMillis = 0; // Tijdstempel van de laatste BLE-update
+const long BLE_INTERVAL = 3000;  // 3 seconden interval
+
 // ------------------------------------------------------------------------------------------------------------------------------
 // TEMPERATUURGEGEVENS:
 #define DHTPIN D10
@@ -231,19 +234,22 @@ void loop() {
         lastButtonState = LOW;  
     }
 
-    // Handle BLE connectiviteit
+   // Handle BLE connectiviteit
     if (deviceConnected) {
-        // Controleer of de temperatuur al is verzonden
-        if (!tempSent) {
-            String tempStr = String(temp); // Zet de gemeten temperatuur om in een string
-            pCharacteristic->setValue(tempStr.c_str()); // Stuur de temperatuurwaarde naar BLE-characteristic
-            pCharacteristic->notify(); // Verstuur de update
-            Serial.println("Temperatuur verzonden via BLE: " + tempStr);
-            tempSent = true; // Markeer dat de temperatuur is verzonden
+        // Controleer of er 3 seconden zijn verstreken sinds de laatste BLE-update
+        if (millis() - lastBLEMillis >= BLE_INTERVAL) {
+            // Controleer of de temperatuur al is verzonden
+            if (!tempSent) {
+                String tempStr = String(temp); // Zet de gemeten temperatuur om in een string
+                pCharacteristic->setValue(tempStr.c_str()); // Stuur de temperatuurwaarde naar BLE-characteristic
+                pCharacteristic->notify(); // Verstuur de update
+                Serial.println("Temperatuur verzonden via BLE: " + tempStr);
+                tempSent = true; // Markeer dat de temperatuur is verzonden
+            }
+            lastBLEMillis = millis(); // Update de tijdstempel van de laatste BLE-update
         }
-        delay(3000); // Voorkom dat de BLE-stack overbelast raakt
     }
-    
+
     // Verwerking van disconnect
     if (!deviceConnected && oldDeviceConnected) {
         Serial.println("Een apparaat is losgekoppeld van BLE");
