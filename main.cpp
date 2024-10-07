@@ -50,7 +50,7 @@ const char* characteristicUUID = "f4f7de75-c2da-4234-93ef-17fcb04d3674"; // Uniq
 BLECharacteristic* pCharacteristic = NULL;
 
 unsigned long lastBLEMillis = 0; // Tijdstempel van de laatste BLE-update
-const long BLE_INTERVAL = 5000;  // 3 seconden interval
+const long BLE_INTERVAL = 3000;  // 3 seconden interval
 
 // ------------------------------------------------------------------------------------------------------------------------------
 // TEMPERATUURGEGEVENS:
