@@ -218,7 +218,7 @@ void BLE_sturen() {
      // Handle BLE connectiviteit
     if (deviceConnected) {
         // Controleer of er 3 seconden zijn verstreken sinds de laatste BLE-update
-        if (millis() - lastBLEMillis >= BLE_INTERVAL) {
+        if (millis() - lastBLEMillis > BLE_INTERVAL) {
             // Controleer of de temperatuur al is verzonden
             if (!tempSent) {
                 String tempStr = String(temp); // Zet de gemeten temperatuur om in een string
