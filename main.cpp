@@ -43,8 +43,8 @@ bool metingGestart = false; // Controleer of een meting is gestart via de knop
 BLEServer* pServer = NULL;
 bool deviceConnected = false;
 bool oldDeviceConnected = false;
-const char* serviceUUID = "12345678-1234-5678-1234-56789abcdef0"; // Unique service UUID
-const char* characteristicUUID = "12345678-1234-5678-1234-56789abcdef1"; // Unique characteristic UUID
+const char* serviceUUID = "c203e7c5-dfc4-46d2-a524-f3c41761a4ea"; // Unique service UUID
+const char* characteristicUUID = "f4f7de75-c2da-4234-93ef-17fcb04d3674"; // Unique characteristic UUID
 BLECharacteristic* pCharacteristic = NULL;
 
 // ------------------------------------------------------------------------------------------------------------------------------
@@ -101,7 +101,7 @@ void setup() {
 
     // ------------------------------------
     // BLE initialisatie
-    BLEDevice::init("ESP32_BLE_Device"); // Naam van je BLE-apparaat
+    BLEDevice::init("ESP32SINS"); // Naam van je BLE-apparaat
     pServer = BLEDevice::createServer();
     pServer->setCallbacks(new MyServerCallbacks());
     BLEService *pService = pServer->createService(serviceUUID);
