@@ -48,6 +48,7 @@ const timestampContainer = document.getElementById('timestamp');
 var deviceName = 'ESP32SINS';  // Match the name from your ESP32 sketch
 var bleService = 'c203e7c5-dfc4-46d2-a524-f3c41761a4ea';  // Service UUID
 var sensorCharacteristic = 'f4f7de75-c2da-4234-93ef-17fcb04d3674';  // Characteristic UUID
+var ledCharacteristic = '19b10002-e8f2-537e-4f6c-d104768a1214';
 
 // Global Variables to Handle Bluetooth
 var bleServer;
@@ -61,7 +62,8 @@ connectButton.addEventListener('click', connectToDevice);
 disconnectButton.addEventListener('click', disconnectDevice);
 
 // Measure Button
-measureButton.addEventListener('click', writeOnCharacteristic);
+measureButton.addEventListener('click', () => writeOnCharacteristic(1));
+measureButton.addEventListener('click', () => writeOnCharacteristic(0));
 
 // Check if BLE is available in your Browser
 function isWebBluetoothEnabled() {
@@ -133,16 +135,19 @@ function handleCharacteristicChange(event) {
 function writeOnCharacteristic() {
     // Send a command to measure temperature
     if (bleServer && bleServer.connected) {
-        if (sensorCharacteristicFound) {
-            const data = new Uint8Array([1]);  // Assuming '1' initiates a temperature measurement
-            sensorCharacteristicFound.writeValue(data)
+        bleServiceFound.getCharacteristic(ledCharacteristic)
+            .then(characteristic => {
+                console.log("Found the LED characteristic: ", characteristic.uuid);
+                const data = new Uint8Array([value]);
+                return characteristic.writeValue(data);})
                 .then(() => {
+                    latestValueSent.innerHTML = value;
                     console.log("Measurement command sent.");
                 })
                 .catch(error => {
                     console.error("Error sending measurement command: ", error);
-                });
-        }
+                
+        });
     } else {
         console.error("Bluetooth is not connected. Cannot send measurement command.")
         window.alert("Bluetooth is not connected. Cannot send measurement command. \n Connect to BLE first!")
