@@ -230,19 +230,28 @@ void loop() {
 
     // Handle BLE connectiviteit
     if (deviceConnected) {
-        // Update de BLE-kenmerken, als dat nodig is
-        String bleState = deviceConnected ? "Connected" : "Disconnected";
-        pCharacteristic->setValue(bleState.c_str());
-        pCharacteristic->notify(); // Notificeer verbonden apparaten
+        // Lees de temperatuur uit en zet deze om in een String
+        String temperatuurString = String(temp);  // 'temp' wordt elders in de code gemeten en bevat de temperatuur
+
+        // Stuur de temperatuur naar de BLE-client
+        pCharacteristic->setValue(temperatuurString.c_str());  // Zet de string om naar een C-string
+        pCharacteristic->notify();  // Verstuur de notificatie
+
+        delay(3000);  // Voeg een vertraging toe om BLE-congestie te voorkomen
     }
 
-    // Houd bij of de verbinding is gewijzigd
-    if (deviceConnected != oldDeviceConnected) {
+    // BLE losgekoppeld
+    if (!deviceConnected && oldDeviceConnected) {
+        Serial.println("Een apparaat is losgekoppeld van BLE");
+        delay(500);  // Geef de BLE-stack de tijd om bij te werken
+        pServer->startAdvertising();  // Start opnieuw met adverteren
+        Serial.println("Start advertising");
         oldDeviceConnected = deviceConnected;
-        if (deviceConnected) {
-            Serial.println("Een apparaat is verbonden via BLE");
-        } else {
-            Serial.println("Een apparaat is losgekoppeld van BLE");
-        }
+    }
+
+    // BLE verbonden
+    if (deviceConnected && !oldDeviceConnected) {
+        Serial.println("Een apparaat is verbonden via BLE");
+        oldDeviceConnected = deviceConnected;
     }
 }
