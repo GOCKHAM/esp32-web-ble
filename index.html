@@ -37,33 +37,115 @@
 </body>
 <script>
 // DOM Elements
+const connectButton = document.getElementById('connectBleButton');
+const disconnectButton = document.getElementById('disconnectBleButton');
 const measureButton = document.getElementById('measureButton');
 const retrievedValue = document.getElementById('valueContainer');
 const bleStateContainer = document.getElementById('bleState');
 const timestampContainer = document.getElementById('timestamp');
 
-// Global Variables for BLE
+// Define BLE Device Specs
+var deviceName = 'ESP32SINS';  // Match the name from your ESP32 sketch
+var bleService = 'c203e7c5-dfc4-46d2-a524-f3c41761a4ea';  // Service UUID
+var sensorCharacteristic = 'f4f7de75-c2da-4234-93ef-17fcb04d3674';  // Characteristic UUID
+
+// Global Variables to Handle Bluetooth
 var bleServer;
 var bleServiceFound;
 var sensorCharacteristicFound;
 
-// Measure Button (add event listener)
-measureButton.addEventListener('click', () => writeOnCharacteristic(1));  // Assuming '1' triggers the temperature measurement on your ESP32
+// Connect Button
+connectButton.addEventListener('click', connectToDevice);
 
-// Function to write value to BLE characteristic
-function writeOnCharacteristic(value) {
+// Disconnect Button
+disconnectButton.addEventListener('click', disconnectDevice);
+
+// Measure Button
+measureButton.addEventListener('click', () => writeOnCharacteristic(1));
+
+// Check if BLE is available in your Browser
+function isWebBluetoothEnabled() {
+    if (!navigator.bluetooth) {
+        console.log('Web Bluetooth API is not available in this browser!');
+        bleStateContainer.innerHTML = "Web Bluetooth API is not available in this browser/device!";
+        return false;
+    }
+    console.log('Web Bluetooth API supported in this browser.');
+    return true;
+}
+
+// Connect to BLE Device and Enable Notifications
+function connectToDevice() {
+    console.log('Initializing Bluetooth...');
+    navigator.bluetooth.requestDevice({
+        filters: [{ name: deviceName }],
+        optionalServices: [bleService]
+    })
+    .then(device => {
+        console.log('Device Selected:', device.name);
+        bleStateContainer.innerHTML = 'Connected to device ' + device.name;
+        bleStateContainer.style.color = "#24af37";
+        device.addEventListener('gattservicedisconnected', onDisconnected);
+        return device.gatt.connect();
+    })
+    .then(gattServer => {
+        bleServer = gattServer;
+        console.log("Connected to GATT Server");
+        return bleServer.getPrimaryService(bleService);
+    })
+    .then(service => {
+        bleServiceFound = service;
+        console.log("Service discovered:", service.uuid);
+        return service.getCharacteristic(sensorCharacteristic);
+    })
+    .then(characteristic => {
+        console.log("Characteristic discovered:", characteristic.uuid);
+        sensorCharacteristicFound = characteristic;
+        characteristic.addEventListener('characteristicvaluechanged', handleCharacteristicChange);
+        characteristic.startNotifications();
+        console.log("Notifications Started.");
+        return characteristic.readValue();
+    })
+    .then(value => {
+        console.log("Read value: ", value);
+        const decodedValue = new TextDecoder().decode(value);
+        retrievedValue.innerHTML = decodedValue;
+    })
+    .catch(error => {
+        console.log('Error: ', error);
+    });
+}
+
+function onDisconnected(event) {
+    console.log('Device Disconnected:', event.target.device.name);
+    bleStateContainer.innerHTML = "Device disconnected";
+    bleStateContainer.style.color = "#d13a30";
+    connectToDevice();
+}
+
+function handleCharacteristicChange(event) {
+    const newValueReceived = new TextDecoder().decode(event.target.value);
+    console.log("Characteristic value changed: ", newValueReceived);
+    retrievedValue.innerHTML = newValueReceived;
+    timestampContainer.innerHTML = getDateTime();
+}
+
+function writeOnCharacteristic(value) { 
     if (bleServer && bleServer.connected) {
-        bleServiceFound.getCharacteristic(sensorCharacteristicFound)
+        // Assuming `sensorCharacteristicFound` holds the temperature characteristic
+        bleServiceFound.getCharacteristic(sensorCharacteristic)
         .then(characteristic => {
-            console.log("Found the sensor characteristic: ", characteristic.uuid);
-            const data = new Uint8Array([value]);  // Send the command to measure temperature
-            return characteristic.writeValue(data);  // Write the value to the characteristic
+            console.log("Found the temperature characteristic: ", characteristic.uuid);
+            const data = new Uint8Array([value]);  // '1' initiates temperature measurement
+            return characteristic.writeValue(data);
         })
         .then(() => {
-            console.log("Value written to sensor characteristic:", value);
+            console.log("Value written to temperature characteristic:", value);
+            // Optionally update UI or display the latest sent value
+            window.alert("Temperature measurement command sent successfully!");
         })
         .catch(error => {
-            console.error("Error writing to the sensor characteristic: ", error);
+            console.error("Error writing to the temperature characteristic: ", error);
         });
     } else {
         console.error("Bluetooth is not connected. Cannot write to characteristic.");
@@ -71,49 +153,32 @@ function writeOnCharacteristic(value) {
     }
 }
 
-// Function to connect to BLE device
-function connectToDevice() {
-    navigator.bluetooth.requestDevice({
-        filters: [{ name: deviceName }],
-        optionalServices: [bleService]
-    })
-    .then(device => {
-        console.log('Device selected:', device.name);
-        bleStateContainer.innerHTML = 'Connected to device ' + device.name;
-        bleStateContainer.style.color = "#24af37";
-        return device.gatt.connect();
-    })
-    .then(server => {
-        bleServer = server;
-        return server.getPrimaryService(bleService);
-    })
-    .then(service => {
-        bleServiceFound = service;
-        return service.getCharacteristic(sensorCharacteristic);
-    })
-    .then(characteristic => {
-        sensorCharacteristicFound = characteristic;
-        characteristic.addEventListener('characteristicvaluechanged', handleCharacteristicChange);
-        characteristic.startNotifications();
-        return characteristic.readValue();
-    })
-    .then(value => {
-        const decodedValue = new TextDecoder().decode(value);
-        retrievedValue.innerHTML = decodedValue;
-    })
-    .catch(error => {
-        console.error('Error: ', error);
-    });
+function disconnectDevice() {
+    console.log("Disconnect Device.");
+    if (bleServer && bleServer.connected) {
+        if (sensorCharacteristicFound) {
+            sensorCharacteristicFound.stopNotifications()
+                .then(() => {
+                    console.log("Notifications Stopped");
+                    return bleServer.disconnect();
+                })
+                .then(() => {
+                    console.log("Device Disconnected");
+                    bleStateContainer.innerHTML = "Device Disconnected";
+                    bleStateContainer.style.color = "#d13a30";
+                })
+                .catch(error => {
+                    console.log("An error occurred:", error);
+                });
+        } else {
+            console.log("No characteristic found to disconnect.");
+        }
+    } else {
+        console.error("Bluetooth is not connected.");
+        window.alert("Bluetooth is not connected.")
+    }
 }
 
-// Function to handle receiving new temperature data
-function handleCharacteristicChange(event) {
-    const newValue = new TextDecoder().decode(event.target.value);
-    retrievedValue.innerHTML = newValue;  // Update temperature reading
-    timestampContainer.innerHTML = getDateTime();  // Update timestamp
-}
-
-// Function to get current date and time
 function getDateTime() {
     var currentdate = new Date();
     var day = ("00" + currentdate.getDate()).slice(-2);
@@ -125,6 +190,5 @@ function getDateTime() {
     var datetime = day + "/" + month + "/" + year + " at " + hours + ":" + minutes + ":" + seconds;
     return datetime;
 }
-
 </script>
 </html>
