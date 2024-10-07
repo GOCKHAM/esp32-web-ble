@@ -282,5 +282,18 @@ void loop() {
     }
 
 BLE_sturen();
+
+    // Zorg ervoor dat je hier de ontvangen waarde afhandelt.
+    if (deviceConnected) {
+        if (pCharacteristic->getValue() == "1") {
+            // Start een nieuwe temperatuurmeting
+            meetTemperatuurEnGeefReactie(); // Zorgt ervoor dat er een nieuwe meting wordt gedaan
+            
+            // Update de BLE met de nieuwe temperatuurwaarde
+            pCharacteristic->setValue(String(temp).c_str());
+            pCharacteristic->notify();  // Stuur de waarde naar de verbonden client
+            Serial.println("Nieuwe temperatuur verzonden via BLE");
+        }
+    }
 }
 
