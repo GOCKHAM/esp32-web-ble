@@ -39,6 +39,14 @@ int buttonState = 0;
 int lastButtonState = 0; 
 bool metingGestart = false; // Controleer of een meting is gestart via de knop
 
+// ------------------------------------------------------------------------------------------------------------------------------
+// BLE configuratie
+BLEServer* pServer = NULL;
+bool deviceConnected = false;
+bool oldDeviceConnected = false;
+const char* serviceUUID = "c203e7c5-dfc4-46d2-a524-f3c41761a4ea"; // Unique service UUID
+const char* characteristicUUID = "f4f7de75-c2da-4234-93ef-17fcb04d3674"; // Unique characteristic UUID
+BLECharacteristic* pCharacteristic = NULL;
 
 // ------------------------------------------------------------------------------------------------------------------------------
 // TEMPERATUURGEGEVENS:
@@ -93,48 +101,37 @@ void setup() {
     Serial.println();
 
     // ------------------------------------
-  // Create the BLE Device
-  BLEDevice::init("ESP32SINS");
+    // Create the BLE Device
+    BLEDevice::init("ESP32SINS");
 
-  // Create the BLE Server
-  pServer = BLEDevice::createServer();
-  pServer->setCallbacks(new MyServerCallbacks());
+    // Create the BLE Server
+    pServer = BLEDevice::createServer();
+    pServer->setCallbacks(new MyServerCallbacks());
 
-  // Create the BLE Service
-  BLEService *pService = pServer->createService(serviceUUID);
+    // Create the BLE Service
+    BLEService *pService = pServer->createService(serviceUUID);
 
-  // Create a BLE Characteristic
-  pSensorCharacteristic = pService->createCharacteristic(
-                      characteristicUUID,
-                      BLECharacteristic::PROPERTY_READ   |
-                      BLECharacteristic::PROPERTY_WRITE  |
-                      BLECharacteristic::PROPERTY_NOTIFY |
-                      BLECharacteristic::PROPERTY_INDICATE
-                    );
+    // Create a BLE Characteristic
+    pCharacteristic = pService->createCharacteristic( // Wijzig hier 'characteristicUUID' naar 'pCharacteristic'
+        characteristicUUID,
+        BLECharacteristic::PROPERTY_READ   |
+        BLECharacteristic::PROPERTY_WRITE  |
+        BLECharacteristic::PROPERTY_NOTIFY |
+        BLECharacteristic::PROPERTY_INDICATE
+    );
 
-  // // Create the ON button Characteristic
-  // pLedCharacteristic = pService->createCharacteristic(
-  //                     LED_CHARACTERISTIC_UUID,
-  //                     BLECharacteristic::PROPERTY_WRITE
-  //                   );
+    // Create a BLE Descriptor
+    pCharacteristic->addDescriptor(new BLE2902());
 
-  // // Register the callback for the ON button characteristic
-  // pLedCharacteristic->setCallbacks(new MyCharacteristicCallbacks());
+    // Start the service
+    pService->start();
 
-  // https://www.bluetooth.com/specifications/gatt/viewer?attributeXmlFile=org.bluetooth.descriptor.gatt.client_characteristic_configuration.xml
-  // Create a BLE Descriptor
-  pSensorCharacteristic->addDescriptor(new BLE2902());
-  // pLedCharacteristic->addDescriptor(new BLE2902());
-
-  // Start the service
-  pService->start();
-
-  // Start advertising
-  BLEAdvertising *pAdvertising = BLEDevice::getAdvertising();
-  pAdvertising->addServiceUUID(serviceUUID);
-  pAdvertising->setScanResponse(false);
-  pAdvertising->setMinPreferred(0x0);  // set value to 0x00 to not advertise this parameter
-  BLEDevice::startAdvertising();
+    // Start advertising
+    BLEAdvertising *pAdvertising = BLEDevice::getAdvertising();
+    pAdvertising->addServiceUUID(serviceUUID);
+    pAdvertising->setScanResponse(false);
+    pAdvertising->setMinPreferred(0x0);  // set value to 0x00 to not advertise this parameter
+    BLEDevice::startAdvertising();
     Serial.println("BLE gestart");
 }
 
