@@ -145,7 +145,7 @@ function writeOnCharacteristic(value) {
                 return characteristic.writeValue(data);
             })
             .then(() => {
-                console.log("Measurement command sent.");
+                console.log("Measurement command sent.", value);
             })
             .catch(error => {
                 console.error("Error sending measurement command: ", error);
