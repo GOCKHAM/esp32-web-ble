@@ -62,8 +62,11 @@ connectButton.addEventListener('click', connectToDevice);
 disconnectButton.addEventListener('click', disconnectDevice);
 
 // Measure Button
-measureButton.addEventListener('click', () => writeOnCharacteristic(1));
-measureButton.addEventListener('click', () => writeOnCharacteristic(0));
+measureButton.addEventListener('click', () => {
+    writeOnCharacteristic(1); // Only call this function once for measuring temperature
+});
+
+// measureButton.addEventListener('click', () => writeOnCharacteristic(0));
 
 // Check if BLE is available in your Browser
 function isWebBluetoothEnabled() {
@@ -132,27 +135,27 @@ function handleCharacteristicChange(event) {
     timestampContainer.innerHTML = getDateTime();
 }
 
-function writeOnCharacteristic() {
+function writeOnCharacteristic(value) {
     // Send a command to measure temperature
-    if (bleServer && bleServer.connected) {
+    if (bleServer && deviceConnected) {  // Check if device is connected
         bleServiceFound.getCharacteristic(ledCharacteristic)
             .then(characteristic => {
                 console.log("Found the LED characteristic: ", characteristic.uuid);
-                const data = new Uint8Array([value]);
-                return characteristic.writeValue(data);})
-                .then(() => {
-                    latestValueSent.innerHTML = value;
-                    console.log("Measurement command sent.");
-                })
-                .catch(error => {
-                    console.error("Error sending measurement command: ", error);
-                
-        });
+                const data = new Uint8Array([value]); // Use the value passed to the function
+                return characteristic.writeValue(data);
+            })
+            .then(() => {
+                console.log("Measurement command sent.");
+            })
+            .catch(error => {
+                console.error("Error sending measurement command: ", error);
+            });
     } else {
-        console.error("Bluetooth is not connected. Cannot send measurement command.")
-        window.alert("Bluetooth is not connected. Cannot send measurement command. \n Connect to BLE first!")
+        console.error("Bluetooth is not connected. Cannot send measurement command.");
+        window.alert("Bluetooth is not connected. Cannot send measurement command. \n Connect to BLE first!");
     }
 }
+
 
 function disconnectDevice() {
     console.log("Disconnect Device.");
