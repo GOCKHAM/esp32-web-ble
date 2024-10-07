@@ -79,19 +79,24 @@ class MyServerCallbacks : public BLEServerCallbacks {
 
 // ------------------------------------------------------------------------------------------------------------------------------
 class MyCharacteristicCallbacks : public BLECharacteristicCallbacks {
-  void onWrite(BLECharacteristic* pLedCharacteristic) {
-    std::string ledvalue  = pLedCharacteristic->getValue(); 
-    String value = String(ledvalue.c_str());
-    if (value.length() >= 0) {
-      Serial.print("Characteristic event, written: ");
-      Serial.println(static_cast<int>(value[0])); // Print the integer value
+    void onWrite(BLECharacteristic* pLedCharacteristic) {
+        std::string ledvalue = pLedCharacteristic->getValue(); 
+        String value = String(ledvalue.c_str());
+        if (value.length() >= 0) {
+            Serial.print("Characteristic event, written: ");
+            Serial.println(static_cast<int>(value[0])); // Print the integer value
 
-      int receivedValue = static_cast<int>(value[0]);
-      if (receivedValue == 1) {
-        temp = dht.readTemperature();
+            int receivedValue = static_cast<int>(value[0]);
+            if (receivedValue == 1) {
+                temp = dht.readTemperature();
+                String tempStr = String(temp);
+                pCharacteristic->setValue(tempStr.c_str()); // Send temperature back to the characteristic
+                pCharacteristic->notify(); // Notify the connected device of the new temperature
+            }
+        }
     }
-  }
-}};
+};
+
 
 // ------------------------------------------------------------------------------------------------------------------------------
 void setup() {
