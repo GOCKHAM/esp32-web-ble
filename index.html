@@ -3,41 +3,65 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="styles.css">
-    <title>ESP32 Web BLE Application</title>
+    <title>Temperatuurmeting IoT</title>
+    <!-- Koppeling naar het externe CSS-bestand -->
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="container">
-        <h1>ESP32 Web BLE Application</h1>
-        <div class="ble-controls">
-            <h2>BLE Controls</h2>
-            <button id="ble-on">Bluetooth Aan</button>
-            <button id="ble-off">Bluetooth Uit</button>
-            <p id="ble-status">BLE status: Disconnected</p>
+        <h1>Temperatuurmeting IoT</h1>
+        <h2>Temperatuurmetingen</h2>
+
+        <!-- Knoppen voor temperatuurmeting -->
+        <div class="button-container">
+            <button id="meetTemperatuurButton" class="control-button">Meet Temperatuur</button>
         </div>
-        <div class="temperature-info">
-            <h2>Temperatuur Gegevens</h2>
-            <p id="temperature">Temperatuur: -- °C</p>
-            <p id="timestamp">Tijd: --</p>
+
+        <!-- Toon de gemeten temperatuur -->
+        <div id="temperatuurResultaat">
+            Gemeten temperatuur: <span id="temperatuur">-</span> °C
+        </div>
+
+        <!-- Lijst van eerder gemeten temperaturen -->
+        <div id="temperatuurHistorie">
+            <h3>Temperatuurgeschiedenis</h3>
+            <ul id="historieLijst">
+                <!-- Dynamisch gegenereerde lijst van temperaturen komt hier -->
+            </ul>
         </div>
     </div>
+
     <script>
-        // Simuleer Bluetooth en temperatuurgegevens
-        document.getElementById('ble-on').addEventListener('click', function() {
-            document.getElementById('ble-status').innerText = 'BLE status: Connected';
+        // Dummy lijst om eerder gemeten temperaturen op te slaan
+        let temperatuurHistorie = [];
+
+        // Stuur verzoek naar de server om de temperatuur te meten
+        document.getElementById('meetTemperatuurButton').addEventListener('click', function() {
+            // In dit voorbeeld gebruiken we dummydata
+            const dummyTemperatuur = (Math.random() * 30).toFixed(1); // Genereer een willekeurige temperatuur tussen 0 en 30 °C
+
+            // Voeg de nieuwe temperatuur toe aan de lijst
+            temperatuurHistorie.push(dummyTemperatuur);
+
+            // Update de gemeten temperatuur in de weergave
+            document.getElementById('temperatuur').innerText = dummyTemperatuur;
+
+            // Update de geschiedenis-lijst in de weergave
+            updateHistorieLijst();
         });
 
-        document.getElementById('ble-off').addEventListener('click', function() {
-            document.getElementById('ble-status').innerText = 'BLE status: Disconnected';
-        });
+        // Functie om de geschiedenis-lijst bij te werken
+        function updateHistorieLijst() {
+            const lijstElement = document.getElementById('historieLijst');
+            lijstElement.innerHTML = ''; // Maak de huidige lijst leeg
 
-        // Voor het simuleren van temperatuurdata en tijd
-        setInterval(function() {
-            const temp = (Math.random() * 30).toFixed(1); // Simuleer een temperatuur tussen 0 en 30 °C
-            const now = new Date();
-            document.getElementById('temperature').innerText = 'Temperatuur: ' + temp + ' °C';
-            document.getElementById('timestamp').innerText = 'Tijd: ' + now.toLocaleString();
-        }, 5000); // Update elke 5 seconden
+            // Loop door alle gemeten temperaturen en voeg ze toe aan de lijst
+            temperatuurHistorie.forEach((temperatuur, index) => {
+                const lijstItem = document.createElement('li');
+                lijstItem.textContent = `Meting ${index + 1}: ${temperatuur} °C`;
+                lijstElement.appendChild(lijstItem);
+            });
+        }
     </script>
 </body>
 </html>
