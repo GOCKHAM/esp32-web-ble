@@ -213,28 +213,9 @@ void meetTemperatuurEnGeefReactie() {
     }
 }
 
-// ------------------------------------------------------------------------------------------------------------------------------
-void loop() {
-    // Temperatuur met LED's en buzzer via timer:
-    if (millis() - lastTempMillis >= TEMP_INTERVAL) {   
-        lastTempMillis = millis();
-        meetTemperatuurEnGeefReactie(); // Voer meting uit
-        // tempSent = false; // Reset de verzendstatus
-    }
+void BLE_sturen() {
 
-    // Controleer op knopdruk om meting direct te starten
-    buttonState = digitalRead(Drukknop);
-    if (buttonState == HIGH && lastButtonState == LOW) {  
-        Serial.println("Knop ingedrukt, meting gestart!");
-        meetTemperatuurEnGeefReactie();  // Start meting direct
-        lastTempMillis = millis();  
-        lastButtonState = HIGH; 
-        // tempSent = false; 
-    } else if (buttonState == LOW) {
-        lastButtonState = LOW;  
-    }
-
-   // Handle BLE connectiviteit
+     // Handle BLE connectiviteit
     if (deviceConnected) {
         // Controleer of er 3 seconden zijn verstreken sinds de laatste BLE-update
         if (millis() - lastBLEMillis >= BLE_INTERVAL) {
@@ -264,5 +245,28 @@ void loop() {
         oldDeviceConnected = deviceConnected;
         Serial.println("Een apparaat is verbonden via BLE");
     }
+}
+// ------------------------------------------------------------------------------------------------------------------------------
+void loop() {
+    // Temperatuur met LED's en buzzer via timer:
+    if (millis() - lastTempMillis >= TEMP_INTERVAL) {   
+        lastTempMillis = millis();
+        meetTemperatuurEnGeefReactie(); // Voer meting uit
+        // tempSent = false; // Reset de verzendstatus
+    }
+
+    // Controleer op knopdruk om meting direct te starten
+    buttonState = digitalRead(Drukknop);
+    if (buttonState == HIGH && lastButtonState == LOW) {  
+        Serial.println("Knop ingedrukt, meting gestart!");
+        meetTemperatuurEnGeefReactie();  // Start meting direct
+        lastTempMillis = millis();  
+        lastButtonState = HIGH; 
+        // tempSent = false; 
+    } else if (buttonState == LOW) {
+        lastButtonState = LOW;  
+    }
+
+BLE_sturen();
 }
 
