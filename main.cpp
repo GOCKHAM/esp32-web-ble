@@ -211,8 +211,8 @@ void meetTemperatuurEnGeefReactie() {
 
 // ------------------------------------------------------------------------------------------------------------------------------
 void loop() {
-    // TEMPERATUUR MET LEDJES EN BUZZER CODE VIA TIMER:
-    if (millis() - lastTempMillis >= TEMP_INTERVAL) {   // Meet elke 15 minuten
+    // Temperatuur met LED's en buzzer via timer:
+    if (millis() - lastTempMillis >= TEMP_INTERVAL) {   
         lastTempMillis = millis();
         meetTemperatuurEnGeefReactie(); // Voer meting uit
     }
@@ -230,28 +230,26 @@ void loop() {
 
     // Handle BLE connectiviteit
     if (deviceConnected) {
-        // Lees de temperatuur uit en zet deze om in een String
-        String temperatuurString = String(temp);  // 'temp' wordt elders in de code gemeten en bevat de temperatuur
-
-        // Stuur de temperatuur naar de BLE-client
-        pCharacteristic->setValue(temperatuurString.c_str());  // Zet de string om naar een C-string
-        pCharacteristic->notify();  // Verstuur de notificatie
-
-        delay(3000);  // Voeg een vertraging toe om BLE-congestie te voorkomen
+        String tempStr = String(temp); // Zet de gemeten temperatuur om in een string
+        pCharacteristic->setValue(tempStr.c_str()); // Stuur de temperatuurwaarde naar BLE-characteristic
+        pCharacteristic->notify(); // Verstuur de update
+        Serial.println("Temperatuur verzonden via BLE: " + tempStr);
+        delay(3000); // Voorkom dat de BLE-stack overbelast raakt
     }
 
-    // BLE losgekoppeld
+    // Verwerking van disconnect
     if (!deviceConnected && oldDeviceConnected) {
         Serial.println("Een apparaat is losgekoppeld van BLE");
-        delay(500);  // Geef de BLE-stack de tijd om bij te werken
-        pServer->startAdvertising();  // Start opnieuw met adverteren
+        delay(500);
+        pServer->startAdvertising();
         Serial.println("Start advertising");
         oldDeviceConnected = deviceConnected;
     }
 
-    // BLE verbonden
+    // Verwerking van connectie
     if (deviceConnected && !oldDeviceConnected) {
-        Serial.println("Een apparaat is verbonden via BLE");
         oldDeviceConnected = deviceConnected;
+        Serial.println("Een apparaat is verbonden via BLE");
     }
 }
+
