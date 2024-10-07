@@ -38,6 +38,7 @@ U8G2_SSD1306_128X64_NONAME_F_SW_I2C u8g2(U8G2_R0, SCL, SDA, U8X8_PIN_NONE);
 int buttonState = 0;
 int lastButtonState = 0; 
 bool metingGestart = false; // Controleer of een meting is gestart via de knop
+bool tempSent = false;
 
 // ------------------------------------------------------------------------------------------------------------------------------
 // BLE configuratie
@@ -215,6 +216,7 @@ void loop() {
     if (millis() - lastTempMillis >= TEMP_INTERVAL) {   
         lastTempMillis = millis();
         meetTemperatuurEnGeefReactie(); // Voer meting uit
+        tempSent = false; // Reset de verzendstatus
     }
 
     // Controleer op knopdruk om meting direct te starten
@@ -223,20 +225,25 @@ void loop() {
         Serial.println("Knop ingedrukt, meting gestart!");
         meetTemperatuurEnGeefReactie();  // Start meting direct
         lastTempMillis = millis();  
-        lastButtonState = HIGH;  
+        lastButtonState = HIGH; 
+        tempSent = false; 
     } else if (buttonState == LOW) {
         lastButtonState = LOW;  
     }
 
     // Handle BLE connectiviteit
     if (deviceConnected) {
-        String tempStr = String(temp); // Zet de gemeten temperatuur om in een string
-        pCharacteristic->setValue(tempStr.c_str()); // Stuur de temperatuurwaarde naar BLE-characteristic
-        pCharacteristic->notify(); // Verstuur de update
-        Serial.println("Temperatuur verzonden via BLE: " + tempStr);
+        // Controleer of de temperatuur al is verzonden
+        if (!tempSent) {
+            String tempStr = String(temp); // Zet de gemeten temperatuur om in een string
+            pCharacteristic->setValue(tempStr.c_str()); // Stuur de temperatuurwaarde naar BLE-characteristic
+            pCharacteristic->notify(); // Verstuur de update
+            Serial.println("Temperatuur verzonden via BLE: " + tempStr);
+            tempSent = true; // Markeer dat de temperatuur is verzonden
+        }
         delay(3000); // Voorkom dat de BLE-stack overbelast raakt
     }
-
+    
     // Verwerking van disconnect
     if (!deviceConnected && oldDeviceConnected) {
         Serial.println("Een apparaat is losgekoppeld van BLE");
