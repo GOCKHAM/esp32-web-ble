@@ -91,7 +91,7 @@ void setup() {
 void loop() {
   // Auto-opening flap every 15 minutes (900000 milliseconds)
   static unsigned long lastTime = 0;
-  if (millis() - lastTime > 900000) {
+  if (millis() - lastTime >= 900000) {
     if (doorState == deurSluitHoek) {
     if (doorState == deurSluitHoek) {
       myServo.write(deurOpenHoek); 
