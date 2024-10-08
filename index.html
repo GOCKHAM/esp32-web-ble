@@ -29,10 +29,10 @@
     const servoStateContainer = document.getElementById('servoState'); // New container for servo state
 
     //Define BLE Device Specs
-    var deviceName ='ESP32SINS';
+    var deviceName ='ESP32SINSE';
     var bleService = '19b10000-e8f2-537e-4f6c-d104768a1214';
     var ledCharacteristic = '19b10002-e8f2-537e-4f6c-d104768a1214';
-    // var sensorCharacteristic= '19b10001-e8f2-537e-4f6c-d104768a1214';
+    var sensorCharacteristic= '19b10001-e8f2-537e-4f6c-d104768a1214';
 
     //Global Variables to Handle Bluetooth
     var bleServer;
@@ -171,6 +171,7 @@
             window.alert("Bluetooth is not connected.")
         }
     }
+
 
     // Update servo state based on value (0 or 1)
     function updateServoState(value) {
