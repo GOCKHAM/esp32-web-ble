@@ -1,4 +1,3 @@
-
 #include <Arduino.h>
 #include <BLEDevice.h>
 #include <BLEServer.h>
@@ -15,6 +14,7 @@ bool deviceConnected = false;
 bool oldDeviceConnected = false;
 
 const int servoPin = 12; // Pin where the servo is connected
+bool isFlapOpen = false; // Boolean to track the flap state
 
 #define SERVICE_UUID "42fd51eb-e931-43c5-b222-3fec95abc662"
 #define SERVO_CHARACTERISTIC_UUID "28fa84b6-1d36-45c8-94b8-46876735e94f"
@@ -34,19 +34,18 @@ class MyCharacteristicCallbacks : public BLECharacteristicCallbacks {
     std::string value = pCharacteristic->getValue();
     if (value.length() >= 0) {
       int receivedValue = value[0] - '0';
-      if (receivedValue == 2) {
-        // Open the flap (rotate forward)
-        myServo.writeMicroseconds(1700); // Adjust this value to control speed/direction
-        Serial.println("Flap opening...");
-      } else if (receivedValue == 1) {
-        // Close the flap (rotate backward)
-        myServo.writeMicroseconds(1300); // Adjust this value to control speed/direction
-        Serial.println("Flap closing...");
+      if (receivedValue == 2 && !isFlapOpen) { // Only open if it's not already open
+        myServo.write(65); // Open flap to 65 degrees
+        Serial.println("Flap opened to 65°");
+        isFlapOpen = true; // Set the state to open
+      } else if (receivedValue == 1 && isFlapOpen) { // Only close if it's not already closed
+        myServo.write(0);  // Close flap to 0 degrees
+        Serial.println("Flap closed to 0°");
+        isFlapOpen = false; // Set the state to closed
       }
     }
   }
 };
-
 
 void setup() {
   Serial.begin(115200);
@@ -54,6 +53,7 @@ void setup() {
   // Set up servo
   myServo.attach(servoPin);
   myServo.write(0); // Start with the flap closed
+  isFlapOpen = false; // Initially, the flap is closed
 
   // Create BLE device
   BLEDevice::init("ESP32SINS");
@@ -87,9 +87,15 @@ void loop() {
   // Auto-opening flap every 15 minutes (900000 milliseconds)
   static unsigned long lastTime = 0;
   if (millis() - lastTime > 900000) {
-    myServo.write(65); // Open the flap
+    if (!isFlapOpen) {
+      myServo.write(65); // Open the flap
+      Serial.println("Flap auto-opened.");
+      isFlapOpen = true;
+    }
     delay(15000); // Keep the flap open for 15 seconds
     myServo.write(0);  // Close the flap
+    Serial.println("Flap auto-closed.");
+    isFlapOpen = false;
     lastTime = millis();
   }
 
