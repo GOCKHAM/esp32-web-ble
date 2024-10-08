@@ -35,15 +35,18 @@ class MyCharacteristicCallbacks : public BLECharacteristicCallbacks {
     if (value.length() >= 0) {
       int receivedValue = value[0] - '0';
       if (receivedValue == 2) {
-        myServo.write(65); // Open flap to 65 degrees
-        Serial.println("Flap opened to 65°");
+        // Open the flap (rotate forward)
+        myServo.writeMicroseconds(1700); // Adjust this value to control speed/direction
+        Serial.println("Flap opening...");
       } else if (receivedValue == 1) {
-        myServo.write(0);  // Close flap to 0 degrees
-        Serial.println("Flap closed to 0°");
+        // Close the flap (rotate backward)
+        myServo.writeMicroseconds(1300); // Adjust this value to control speed/direction
+        Serial.println("Flap closing...");
       }
     }
   }
 };
+
 
 void setup() {
   Serial.begin(115200);
