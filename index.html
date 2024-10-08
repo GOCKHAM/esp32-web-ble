@@ -1,107 +1,88 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>ESP32 Web BLE - Servo Control</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" type="text/css" href="style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ESP32 Servo Control</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      padding: 50px;
+    }
+
+    .status {
+      font-size: 24px;
+      margin: 20px 0;
+    }
+
+    button {
+      padding: 15px;
+      font-size: 18px;
+      margin: 10px;
+      cursor: pointer;
+    }
+  </style>
 </head>
 <body>
-    <div class="topnav">
-        <h1>ESP32 Servo Control</h1>
-    </div>
-    <div class="content">
-        <div class="card-grid">
-            <div class="card">
-                <p>
-                    <button id="connectBleButton" class="connectButton"> Connect to BLE</button>
-                    <button id="disconnectBleButton" class="disconnectButton"> Disconnect BLE</button>
-                </p>
-                <p class="gray-label">BLE state: <strong><span id="bleState" style="color:#d13a30;">Disconnected</span></strong></p>
-            </div>
-        </div>
-        <div class="card-grid">
-            <div class="card">
-                <h2>Servo Control</h2>
-                <button id="openButton" class="onButton">Open Flap</button>
-                <button id="closeButton" class="offButton">Close Flap</button>
-                <p class="gray-label">Flap Status: <span id="flapStatus">Closed</span></p>
-            </div>
-        </div>
-    </div>
-    <script>
-        const connectButton = document.getElementById('connectBleButton');
-        const disconnectButton = document.getElementById('disconnectBleButton');
-        const openButton = document.getElementById('openButton');
-        const closeButton = document.getElementById('closeButton');
-        const flapStatus = document.getElementById('flapStatus');
-        const bleStateContainer = document.getElementById('bleState');
+  <h1>ESP32 Servo Control via BLE</h1>
 
-        var deviceName = 'ESP32SINS';
-        var bleService = '42fd51eb-e931-43c5-b222-3fec95abc662'; // Replace with your UUID
-        var servoCharacteristic = '28fa84b6-1d36-45c8-94b8-46876735e94f';
+  <div class="status" id="status">Status: Disconnected</div>
 
-        var bleServer;
-        var bleServiceFound;
+  <button id="openBtn">Open Flap</button>
+  <button id="closeBtn">Close Flap</button>
 
-        // Connect Button
-        connectButton.addEventListener('click', () => {
-            if (navigator.bluetooth) {
-                connectToDevice();
-            } else {
-                alert("Web Bluetooth API not supported on this device.");
-            }
+  <script>
+    let bleDevice;
+    let server;
+    let service;
+    let characteristic;
+    const SERVICE_UUID = "42fd51eb-e931-43c5-b222-3fec95abc662";
+    const CHARACTERISTIC_UUID = "28fa84b6-1d36-45c8-94b8-46876735e94f";
+
+    // Function to connect to the ESP32
+    async function connectBLE() {
+      try {
+        bleDevice = await navigator.bluetooth.requestDevice({
+          filters: [{ services: [SERVICE_UUID] }]
         });
+        server = await bleDevice.gatt.connect();
+        service = await server.getPrimaryService(SERVICE_UUID);
+        characteristic = await service.getCharacteristic(CHARACTERISTIC_UUID);
 
-        // Disconnect Button
-        disconnectButton.addEventListener('click', disconnectDevice);
+        document.getElementById('status').innerText = 'Status: Connected';
 
-        // Manual control buttons
-        openButton.addEventListener('click', () => writeServoValue(65)); // 65° for open
-        closeButton.addEventListener('click', () => writeServoValue(0)); // 0° for closed
+        bleDevice.ongattserverdisconnected = onDisconnected;
+      } catch (error) {
+        console.log('Connection failed', error);
+      }
+    }
 
-        function connectToDevice() {
-            navigator.bluetooth.requestDevice({
-                filters: [{ name: deviceName }],
-                optionalServices: [bleService]
-            })
-            .then(device => {
-                return device.gatt.connect();
-            })
-            .then(server => {
-                bleServer = server;
-                return bleServer.getPrimaryService(bleService);
-            })
-            .then(service => {
-                bleServiceFound = service;
-                bleStateContainer.textContent = 'Connected';
-                bleStateContainer.style.color = "#24af37";
-            })
-            .catch(error => {
-                console.error("Connection failed:", error);
-            });
-        }
+    // Handle disconnection
+    function onDisconnected() {
+      document.getElementById('status').innerText = 'Status: Disconnected';
+    }
 
-        function writeServoValue(angle) {
-            bleServiceFound.getCharacteristic(servoCharacteristic)
-            .then(characteristic => {
-                let data = new Uint8Array([angle === 65 ? 2 : 1]);
-                return characteristic.writeValue(data);
-            })
-            .then(() => {
-                flapStatus.textContent = angle === 65 ? 'Open' : 'Closed';
-            })
-            .catch(error => {
-                console.error("Error controlling the servo:", error);
-            });
-        }
+    // Send command to open the flap
+    document.getElementById('openBtn').addEventListener('click', async () => {
+      if (characteristic) {
+        const command = new Uint8Array([2]); // 2 represents open
+        await characteristic.writeValue(command);
+        console.log('Sent open command');
+      }
+    });
 
-        function disconnectDevice() {
-            if (bleServer) {
-                bleServer.disconnect();
-                bleStateContainer.textContent = 'Disconnected';
-                bleStateContainer.style.color = "#d13a30";
-            }
-        }
-    </script>
+    // Send command to close the flap
+    document.getElementById('closeBtn').addEventListener('click', async () => {
+      if (characteristic) {
+        const command = new Uint8Array([1]); // 1 represents close
+        await characteristic.writeValue(command);
+        console.log('Sent close command');
+      }
+    });
+
+    // Automatically connect when page loads
+    window.onload = connectBLE;
+  </script>
 </body>
 </html>
