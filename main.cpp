@@ -13,7 +13,7 @@ BLECharacteristic* pServoCharacteristic = NULL;
 bool deviceConnected = false;
 bool oldDeviceConnected = false;
 
-const int servoPin = 12; // Pin where the servo is connected
+const int servoPin = 25; // Pin where the servo is connected
 int deurOpenHoek = 65;  // Open position at 65°
 int deurSluitHoek = 0;  // Closed position at 0°
 int doorState = deurSluitHoek;  // Initial state is closed
