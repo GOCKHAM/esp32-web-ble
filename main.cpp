@@ -13,7 +13,7 @@ bool deviceConnected = false;
 bool oldDeviceConnected = false;
 uint32_t value = 0;
 
-static const int servoPin = D3;
+static const int servoPin = D2;
 Servo servo1; 
 
 // See the following for generating UUIDs:
@@ -57,7 +57,7 @@ void setup() {
   servo1.attach(servoPin);
 
   // Create the BLE Device
-  BLEDevice::init("ESP32SINE");
+  BLEDevice::init("ESP32SINSE");
 
   // Create the BLE Server
   pServer = BLEDevice::createServer();
