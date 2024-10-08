@@ -93,16 +93,20 @@ void loop() {
   static unsigned long lastTime = 0;
   if (millis() - lastTime > 900000) {
     if (doorState == deurSluitHoek) {
-      myServo.write(deurOpenHoek);  // Automatically open the door
+    if (doorState == deurSluitHoek) {
+      myServo.write(deurOpenHoek); 
       doorState = deurOpenHoek;
       doorIsOpen = true;
-      Serial.println("Deur automatisch geopend!");
-      delay(15000);  // Keep the door open for 15 seconds
-      myServo.write(deurSluitHoek);  // Automatically close the door
+      Serial.println("Deur geopend!");
+    }
+    } else {
+    if (doorState == deurOpenHoek) {
+      myServo.write(deurSluitHoek);
       doorState = deurSluitHoek;
       doorIsOpen = false;
-      Serial.println("Deur automatisch gesloten!");
+      Serial.println("Deur gesloten!");
     }
+  }
     lastTime = millis();
   }
 
