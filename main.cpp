@@ -14,7 +14,10 @@ bool deviceConnected = false;
 bool oldDeviceConnected = false;
 
 const int servoPin = 12; // Pin where the servo is connected
-bool isFlapOpen = false; // Boolean to track the flap state
+int deurOpenHoek = 65;  // Open position at 65°
+int deurSluitHoek = 0;  // Closed position at 0°
+int doorState = deurSluitHoek;  // Initial state is closed
+bool doorIsOpen = false;
 
 #define SERVICE_UUID "42fd51eb-e931-43c5-b222-3fec95abc662"
 #define SERVO_CHARACTERISTIC_UUID "28fa84b6-1d36-45c8-94b8-46876735e94f"
@@ -33,15 +36,18 @@ class MyCharacteristicCallbacks : public BLECharacteristicCallbacks {
   void onWrite(BLECharacteristic* pCharacteristic) {
     std::string value = pCharacteristic->getValue();
     if (value.length() >= 0) {
-      int receivedValue = value[0] - '0';
-      if (receivedValue == 2 && !isFlapOpen) { // Only open if it's not already open
-        myServo.write(65); // Open flap to 65 degrees
-        Serial.println("Flap opened to 65°");
-        isFlapOpen = true; // Set the state to open
-      } else if (receivedValue == 1 && isFlapOpen) { // Only close if it's not already closed
-        myServo.write(0);  // Close flap to 0 degrees
-        Serial.println("Flap closed to 0°");
-        isFlapOpen = false; // Set the state to closed
+      int receivedValue = value[0] - '0'; // Get first character (either '1' or '2')
+
+      if (receivedValue == 2 && doorState == deurSluitHoek) {
+        myServo.write(deurOpenHoek); // Open the door
+        doorState = deurOpenHoek;  // Update state to open
+        doorIsOpen = true;
+        Serial.println("Deur geopend!");
+      } else if (receivedValue == 1 && doorState == deurOpenHoek) {
+        myServo.write(deurSluitHoek); // Close the door
+        doorState = deurSluitHoek;  // Update state to closed
+        doorIsOpen = false;
+        Serial.println("Deur gesloten!");
       }
     }
   }
@@ -52,8 +58,7 @@ void setup() {
 
   // Set up servo
   myServo.attach(servoPin);
-  myServo.write(0); // Start with the flap closed
-  isFlapOpen = false; // Initially, the flap is closed
+  myServo.write(deurSluitHoek); // Start with the door closed
 
   // Create BLE device
   BLEDevice::init("ESP32SINS");
@@ -87,15 +92,17 @@ void loop() {
   // Auto-opening flap every 15 minutes (900000 milliseconds)
   static unsigned long lastTime = 0;
   if (millis() - lastTime > 900000) {
-    if (!isFlapOpen) {
-      myServo.write(65); // Open the flap
-      Serial.println("Flap auto-opened.");
-      isFlapOpen = true;
+    if (doorState == deurSluitHoek) {
+      myServo.write(deurOpenHoek);  // Automatically open the door
+      doorState = deurOpenHoek;
+      doorIsOpen = true;
+      Serial.println("Deur automatisch geopend!");
+      delay(15000);  // Keep the door open for 15 seconds
+      myServo.write(deurSluitHoek);  // Automatically close the door
+      doorState = deurSluitHoek;
+      doorIsOpen = false;
+      Serial.println("Deur automatisch gesloten!");
     }
-    delay(15000); // Keep the flap open for 15 seconds
-    myServo.write(0);  // Close the flap
-    Serial.println("Flap auto-closed.");
-    isFlapOpen = false;
     lastTime = millis();
   }
 
