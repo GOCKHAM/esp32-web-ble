@@ -11,7 +11,7 @@ BLECharacteristic* pLedCharacteristic = NULL;
 bool deviceConnected = false;
 bool oldDeviceConnected = false;
 
-static const int servoPin = D2;
+static const int servoPin = D3;
 Servo servo1; 
 
 #define SERVICE_UUID "19b10000-e8f2-537e-4f6c-d104768a1214"
