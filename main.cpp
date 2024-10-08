@@ -1,31 +1,26 @@
 #include <Arduino.h>
+#include <ESP32Servo.h>
+
 #include <BLEDevice.h>
 #include <BLEServer.h>
 #include <BLEUtils.h>
 #include <BLE2902.h>
-#include <ESP32Servo.h>  // Use the ESP32-specific servo library
-
-Servo myServo;
 
 BLEServer* pServer = NULL;
-BLECharacteristic* pServoCharacteristic = NULL;
-
+BLECharacteristic* pLedCharacteristic = NULL;
 bool deviceConnected = false;
 bool oldDeviceConnected = false;
 
-const int servoPin = 25; // Pin where the servo is connected
-int deurOpenHoek = 65;  // Open position at 65°
-int deurSluitHoek = 0;  // Closed position at 0°
-int doorState = deurSluitHoek;  // Initial state is closed
-bool doorIsOpen = false;
+static const int servoPin = D2;
+Servo servo1; 
 
-#define SERVICE_UUID "42fd51eb-e931-43c5-b222-3fec95abc662"
-#define SERVO_CHARACTERISTIC_UUID "28fa84b6-1d36-45c8-94b8-46876735e94f"
+#define SERVICE_UUID "19b10000-e8f2-537e-4f6c-d104768a1214"
+#define LED_CHARACTERISTIC_UUID "19b10002-e8f2-537e-4f6c-d104768a1214"
 
-class MyServerCallbacks : public BLEServerCallbacks {
+class MyServerCallbacks: public BLEServerCallbacks {
   void onConnect(BLEServer* pServer) {
     deviceConnected = true;
-  }
+  };
 
   void onDisconnect(BLEServer* pServer) {
     deviceConnected = false;
@@ -33,21 +28,20 @@ class MyServerCallbacks : public BLEServerCallbacks {
 };
 
 class MyCharacteristicCallbacks : public BLECharacteristicCallbacks {
-  void onWrite(BLECharacteristic* pCharacteristic) {
-    std::string value = pCharacteristic->getValue();
+  void onWrite(BLECharacteristic* pLedCharacteristic) {
+    std::string ledvalue = pLedCharacteristic->getValue(); 
+    String value = String(ledvalue.c_str());
     if (value.length() >= 0) {
-      int receivedValue = value[0] - '0'; // Get first character (either '1' or '2')
+      Serial.print("Characteristic event, written: ");
+      Serial.println(static_cast<int>(value[0])); // Print the integer value
 
-      if (receivedValue == 2 && doorState == deurSluitHoek) {
-        myServo.write(deurOpenHoek); // Open the door
-        doorState = deurOpenHoek;  // Update state to open
-        doorIsOpen = true;
-        Serial.println("Deur geopend!");
-      } else if (receivedValue == 1 && doorState == deurOpenHoek) {
-        myServo.write(deurSluitHoek); // Close the door
-        doorState = deurSluitHoek;  // Update state to closed
-        doorIsOpen = false;
-        Serial.println("Deur gesloten!");
+      int receivedValue = static_cast<int>(value[0]);
+      if (receivedValue == 1) {
+        servo1.write(65); // Move servo to open position
+        delay(20); // Small delay for servo to move
+      } else {
+        servo1.write(0); // Move servo to closed position
+        delay(20); // Small delay for servo to move
       }
     }
   }
@@ -55,28 +49,29 @@ class MyCharacteristicCallbacks : public BLECharacteristicCallbacks {
 
 void setup() {
   Serial.begin(115200);
+  servo1.attach(servoPin); // Attach servo to pin
 
-  // Set up servo
-  myServo.attach(servoPin);
-  myServo.write(deurSluitHoek); // Start with the door closed
-
-  // Create BLE device
+  // Create the BLE Device
   BLEDevice::init("ESP32SINS");
 
-  // Create BLE server
+  // Create the BLE Server
   pServer = BLEDevice::createServer();
   pServer->setCallbacks(new MyServerCallbacks());
 
-  // Create BLE service
+  // Create the BLE Service
   BLEService *pService = pServer->createService(SERVICE_UUID);
 
-  // Create BLE characteristic for servo control
-  pServoCharacteristic = pService->createCharacteristic(
-    SERVO_CHARACTERISTIC_UUID,
-    BLECharacteristic::PROPERTY_WRITE
-  );
+  // Create the ON/OFF button Characteristic
+  pLedCharacteristic = pService->createCharacteristic(
+                      LED_CHARACTERISTIC_UUID,
+                      BLECharacteristic::PROPERTY_WRITE
+                    );
 
-  pServoCharacteristic->setCallbacks(new MyCharacteristicCallbacks());
+  // Register the callback for the ON/OFF button characteristic
+  pLedCharacteristic->setCallbacks(new MyCharacteristicCallbacks());
+
+  // Add a BLE Descriptor for the characteristic
+  pLedCharacteristic->addDescriptor(new BLE2902());
 
   // Start the service
   pService->start();
@@ -84,39 +79,25 @@ void setup() {
   // Start advertising
   BLEAdvertising *pAdvertising = BLEDevice::getAdvertising();
   pAdvertising->addServiceUUID(SERVICE_UUID);
-  pAdvertising->start();
-  Serial.println("Waiting for client connection...");
+  pAdvertising->setScanResponse(false);
+  pAdvertising->setMinPreferred(0x0);  // Set value to 0x00 to not advertise this parameter
+  BLEDevice::startAdvertising();
+  Serial.println("Waiting for a client connection to notify...");
 }
 
 void loop() {
-  // Auto-opening flap every 15 minutes (900000 milliseconds)
-  static unsigned long lastTime = 0;
-  if (millis() - lastTime >= 900000) {
-    if (doorState == deurSluitHoek) {
-    if (doorState == deurSluitHoek) {
-      myServo.write(deurOpenHoek); 
-      doorState = deurOpenHoek;
-      doorIsOpen = true;
-      Serial.println("Deur geopend!");
-    }
-    } else {
-    if (doorState == deurOpenHoek) {
-      myServo.write(deurSluitHoek);
-      doorState = deurSluitHoek;
-      doorIsOpen = false;
-      Serial.println("Deur gesloten!");
-    }
-  }
-    lastTime = millis();
-  }
-
-  // Check for Bluetooth connections
+  // Disconnecting
   if (!deviceConnected && oldDeviceConnected) {
-    delay(500); // Wait for BLE to reset
+    Serial.println("Device disconnected.");
+    delay(500); // Give the Bluetooth stack time to get ready
     pServer->startAdvertising(); // Restart advertising
+    Serial.println("Start advertising");
     oldDeviceConnected = deviceConnected;
   }
+  // Connecting
   if (deviceConnected && !oldDeviceConnected) {
+    // Do stuff here on connecting
     oldDeviceConnected = deviceConnected;
+    Serial.println("Device Connected");
   }
 }
