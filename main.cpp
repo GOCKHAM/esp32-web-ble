@@ -47,9 +47,9 @@ bool deviceConnected = false;
 bool oldDeviceConnected = false;
 #define serviceUUID  "c203e7c5-dfc4-46d2-a524-f3c41761a4ea" // Unique service UUID
 #define characteristicUUID  "f4f7de75-c2da-4234-93ef-17fcb04d3674" // Unique characteristic UUID
-#define LED_CHARACTERISTIC_UUID "19b10002-e8f2-537e-4f6c-d104768a1214"
+#define TEMP_CHARACTERISTIC_UUID "19b10002-e8f2-537e-4f6c-d104768a1214"
 BLECharacteristic* pCharacteristic = NULL;
-BLECharacteristic* pLedCharacteristic = NULL;
+BLECharacteristic* pTempCharacteristic = NULL;
 
 unsigned long lastBLEMillis = 0; // Tijdstempel van de laatste BLE-update
 const long BLE_INTERVAL = 3000;  // 3 seconden interval
@@ -76,9 +76,9 @@ class MyServerCallbacks : public BLEServerCallbacks {
 };
 
 class MyCharacteristicCallbacks : public BLECharacteristicCallbacks {
-  void onWrite(BLECharacteristic* pLedCharacteristic) {
-    std::string ledvalue = pLedCharacteristic->getValue(); 
-    String value = String(ledvalue.c_str());
+  void onWrite(BLECharacteristic* pTempCharacteristic) {
+    std::string tempvalue = pTempCharacteristic->getValue(); 
+    String value = String(tempvalue.c_str());
     if (value.length() >= 0) {
       Serial.print("Characteristic event, written: ");
       Serial.println(static_cast<int>(value[0])); // Print de integer waarde
@@ -150,17 +150,17 @@ void setup() {
     );
 
       // Maak de ON/OFF knop karakteristiek aan
-    pLedCharacteristic = pService->createCharacteristic(
-        LED_CHARACTERISTIC_UUID,
+    pTempCharacteristic = pService->createCharacteristic(
+        TEMP_CHARACTERISTIC_UUID,
         BLECharacteristic::PROPERTY_WRITE
     );
 
     // Registreer de callback voor de ON/OFF knop karakteristiek
-    pLedCharacteristic->setCallbacks(new MyCharacteristicCallbacks());
+    pTempCharacteristic->setCallbacks(new MyCharacteristicCallbacks());
 
     // Create a BLE Descriptor
     pCharacteristic->addDescriptor(new BLE2902());
-    pLedCharacteristic->addDescriptor(new BLE2902());
+    pTempCharacteristic->addDescriptor(new BLE2902());
 
     // Start the service
     pService->start();
