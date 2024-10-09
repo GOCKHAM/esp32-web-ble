@@ -48,7 +48,7 @@ const timestampContainer = document.getElementById('timestamp');
 var deviceName = 'ESP32SINS';  // Match the name from your ESP32 sketch
 var bleService = 'c203e7c5-dfc4-46d2-a524-f3c41761a4ea';  // Service UUID
 var sensorCharacteristic = 'f4f7de75-c2da-4234-93ef-17fcb04d3674';  // Characteristic UUID
-var ledCharacteristic = '19b10002-e8f2-537e-4f6c-d104768a1214';
+var TempCharacteristic = '19b10002-e8f2-537e-4f6c-d104768a1214';
 
 // Global Variables to Handle Bluetooth
 var bleServer;
@@ -138,18 +138,18 @@ function handleCharacteristicChange(event) {
 
 function writeOnCharacteristic(value){
         if (bleServer && bleServer.connected) {
-            bleServiceFound.getCharacteristic(ledCharacteristic)
+            bleServiceFound.getCharacteristic(TempCharacteristic)
             .then(characteristic => {
-                console.log("Found the LED characteristic: ", characteristic.uuid);
+                console.log("Found the Temperature characteristic: ", characteristic.uuid);
                 const data = new Uint8Array([value]);
                 return characteristic.writeValue(data);
             })
             .then(() => {
                 latestValueSent.innerHTML = value;
-                console.log("Value written to LEDcharacteristic:", value);
+                console.log("Value written to Tempcharacteristic:", value);
             })
             .catch(error => {
-                console.error("Error writing to the LED characteristic: ", error);
+                console.error("Error writing to the Temperature characteristic: ", error);
             });
         } else {
             console.error ("Bluetooth is not connected. Cannot write to characteristic.")
