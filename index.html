@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>ESP32 Temperature Measurement</title>
+    <title>ESP32 Temperatuurmeting</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="icon" type="image/png" href="favicon.ico">
     <link rel="stylesheet" type="text/css" href="style.css">
@@ -9,34 +9,34 @@
 </head>
 <body>
     <div class="topnav">
-        <h1>ESP32 Temperature Measurement</h1>
+        <h1>ESP32 Temperatuurmeting</h1>
     </div>
     <div class="content">
         <div class="card-grid">
             <div class="card">
                 <p>
-                    <button id="connectBleButton" class="connectButton">Connect to BLE Device</button>
-                    <button id="disconnectBleButton" class="disconnectButton">Disconnect BLE Device</button>
+                    <button id="connectBleButton" class="connectButton">Verbinden met BLE-apparaat</button>
+                    <button id="disconnectBleButton" class="disconnectButton">Verbinding verbreken</button>
                 </p>
-                <p class="gray-label">BLE state: <strong><span id="bleState" style="color:#d13a30;">Disconnected</span></strong></p>
+                <p class="gray-label">BLE status: <strong><span id="bleState" style="color:#d13a30;">Niet verbonden</span></strong></p>
             </div>
         </div>
         <div class="card-grid">
             <div class="card">
-                <h2>Temperature Reading</h2>
+                <h2>Temperatuurmeting</h2>
                 <p class="reading"><span id="valueContainer">NaN</span> °C</p>
-                <p class="gray-label">Last reading: <span id="timestamp"></span></p>
-                <button id="measureButton" class="measureButton">Measure Temperature</button>
+                <p class="gray-label">Laatste meting: <span id="timestamp"></span></p>
+                <button id="measureButton" class="measureButton">Meet Temperatuur</button>
             </div>
         </div>
     </div>
     <div class="footer">
-        <p><a href="https://randomnerdtutorials.com/">Created by RandomNerdTutorials.com</a></p>
-        <p><a href="https://RandomNerdTutorials.com/esp32-web-bluetooth/">Read the full project here.</a></p>
+        <p><a href="https://randomnerdtutorials.com/">Gemaakt door RandomNerdTutorials.com</a></p>
+        <p><a href="https://RandomNerdTutorials.com/esp32-web-bluetooth/">Lees het volledige project hier.</a></p>
     </div>
 </body>
 <script>
-// DOM Elements
+// DOM elementen
 const connectButton = document.getElementById('connectBleButton');
 const disconnectButton = document.getElementById('disconnectBleButton');
 const measureButton = document.getElementById('measureButton');
@@ -44,142 +44,140 @@ const retrievedValue = document.getElementById('valueContainer');
 const bleStateContainer = document.getElementById('bleState');
 const timestampContainer = document.getElementById('timestamp');
 
-// Define BLE Device Specs
-var deviceName = 'ESP32SINS';  // Match the name from your ESP32 sketch
+// Definieer BLE apparaat specificaties
+var deviceName = 'ESP32SINS';  // Komt overeen met de naam in je ESP32-code
 var bleService = 'c203e7c5-dfc4-46d2-a524-f3c41761a4ea';  // Service UUID
 var sensorCharacteristic = 'f4f7de75-c2da-4234-93ef-17fcb04d3674';  // Characteristic UUID
 var TempCharacteristic = '19b10002-e8f2-537e-4f6c-d104768a1214';
 
-// Global Variables to Handle Bluetooth
+// Globale variabelen voor Bluetooth
 var bleServer;
 var bleServiceFound;
 var sensorCharacteristicFound;
 
-// Connect Button
+// Verbinden knop
 connectButton.addEventListener('click', (event) => {
-        if (isWebBluetoothEnabled()) {
-            connectToDevice();
-        }
-    });
+    if (isWebBluetoothEnabled()) {
+        connectToDevice();
+    }
+});
 
-// Disconnect Button
+// Verbinding verbreken knop
 disconnectButton.addEventListener('click', disconnectDevice);
 
-// Measure Button
+// Meetknop
 measureButton.addEventListener('click', () => writeOnCharacteristic(1));
-measureButton.addEventListener('click', () => writeOnCharacteristic(0));
 
-// Check if BLE is available in your Browser
+// Controleer of BLE beschikbaar is in je browser
 function isWebBluetoothEnabled() {
     if (!navigator.bluetooth) {
-        console.log('Web Bluetooth API is not available in this browser!');
-        bleStateContainer.innerHTML = "Web Bluetooth API is not available in this browser/device!";
+        console.log('Web Bluetooth API is niet beschikbaar in deze browser!');
+        bleStateContainer.innerHTML = "Web Bluetooth API is niet beschikbaar in deze browser/apparaat!";
         return false;
     }
-    console.log('Web Bluetooth API supported in this browser.');
+    console.log('Web Bluetooth API wordt ondersteund in deze browser.');
     return true;
 }
 
-// Connect to BLE Device and Enable Notifications
+// Verbinden met BLE-apparaat en meldingen inschakelen
 function connectToDevice() {
-    console.log('Initializing Bluetooth...');
+    console.log('Bluetooth initialiseren...');
     navigator.bluetooth.requestDevice({
         filters: [{ name: deviceName }],
         optionalServices: [bleService]
     })
     .then(device => {
-        console.log('Device Selected:', device.name);
-        bleStateContainer.innerHTML = 'Connected to device ' + device.name;
+        console.log('Apparaat geselecteerd:', device.name);
+        bleStateContainer.innerHTML = 'Verbonden met apparaat ' + device.name;
         bleStateContainer.style.color = "#24af37";
         device.addEventListener('gattservicedisconnected', onDisconnected);
         return device.gatt.connect();
     })
     .then(gattServer => {
         bleServer = gattServer;
-        console.log("Connected to GATT Server");
+        console.log("Verbonden met GATT Server");
         return bleServer.getPrimaryService(bleService);
     })
     .then(service => {
         bleServiceFound = service;
-        console.log("Service discovered:", service.uuid);
+        console.log("Service ontdekt:", service.uuid);
         return service.getCharacteristic(sensorCharacteristic);
     })
     .then(characteristic => {
-        console.log("Characteristic discovered:", characteristic.uuid);
+        console.log("Kenmerk ontdekt:", characteristic.uuid);
         sensorCharacteristicFound = characteristic;
         characteristic.addEventListener('characteristicvaluechanged', handleCharacteristicChange);
         characteristic.startNotifications();
-        console.log("Notifications Started.");
+        console.log("Meldingen gestart.");
         return characteristic.readValue();
     })
     .then(value => {
-        console.log("Read value: ", value);
+        console.log("Waarde gelezen: ", value);
         const decodedValue = new TextDecoder().decode(value);
         retrievedValue.innerHTML = decodedValue;
     })
     .catch(error => {
-        console.log('Error: ', error);
+        console.log('Fout: ', error);
     });
 }
 
 function onDisconnected(event) {
-    console.log('Device Disconnected:', event.target.device.name);
-    bleStateContainer.innerHTML = "Device disconnected";
+    console.log('Apparaat Verbinding Verbroken:', event.target.device.name);
+    bleStateContainer.innerHTML = "Apparaat verbinding verbroken";
     bleStateContainer.style.color = "#d13a30";
-    connectToDevice();
 }
 
 function handleCharacteristicChange(event) {
     const newValueReceived = new TextDecoder().decode(event.target.value);
-    console.log("Characteristic value changed: ", newValueReceived);
+    console.log("Kenmerkwaarde veranderd: ", newValueReceived);
     retrievedValue.innerHTML = newValueReceived;
     timestampContainer.innerHTML = getDateTime();
 }
 
 function writeOnCharacteristic(value){
-        if (bleServer && bleServer.connected) {
-            bleServiceFound.getCharacteristic(TempCharacteristic)
-            .then(characteristic => {
-                console.log("Found the Temperature characteristic: ", characteristic.uuid);
-                const data = new Uint8Array([value]);
-                return characteristic.writeValue(data);
-            })
-            .then(() => {
-                latestValueSent.innerHTML = value;
-                console.log("Value written to Tempcharacteristic:", value);
-            })
-            .catch(error => {
-                console.error("Error writing to the Temperature characteristic: ", error);
-            });
-        } else {
-            console.error ("Bluetooth is not connected. Cannot write to characteristic.")
-            window.alert("Bluetooth is not connected. Cannot write to characteristic. \n Connect to BLE first!")
-        }
+    if (bleServer && bleServer.connected) {
+        bleServiceFound.getCharacteristic(TempCharacteristic)
+        .then(characteristic => {
+            console.log("Temperatuurkenmerk gevonden: ", characteristic.uuid);
+            const data = new Uint8Array([value]);
+            return characteristic.writeValue(data);
+        })
+        .then(() => {
+            latestValueSent.innerHTML = value;
+            console.log("Waarde geschreven naar temperatuurkenmerk:", value);
+        })
+        .catch(error => {
+            console.error("Fout bij het schrijven naar het temperatuurkenmerk: ", error);
+        });
+    } else {
+        console.error("Bluetooth is niet verbonden. Kan niet naar kenmerk schrijven.");
+        window.alert("Bluetooth is niet verbonden. Kan niet naar kenmerk schrijven. \n Verbind eerst met BLE!");
     }
+}
 
 function disconnectDevice() {
-    console.log("Disconnect Device.");
+    console.log("Verbinding Verbreken.");
     if (bleServer && bleServer.connected) {
         if (sensorCharacteristicFound) {
             sensorCharacteristicFound.stopNotifications()
-                .then(() => {
-                    console.log("Notifications Stopped");
-                    return bleServer.disconnect();
-                })
-                .then(() => {
-                    console.log("Device Disconnected");
-                    bleStateContainer.innerHTML = "Device Disconnected";
-                    bleStateContainer.style.color = "#d13a30";
-                })
-                .catch(error => {
-                    console.log("An error occurred:", error);
-                });
+            .then(() => {
+                console.log("Meldingen gestopt");
+                return bleServer.disconnect();
+            })
+            .then(() => {
+                console.log("Apparaat Verbinding Verbroken");
+                bleStateContainer.innerHTML = "Apparaat Verbinding Verbroken";
+                bleStateContainer.style.color = "#d13a30";
+            })
+            .catch(error => {
+                console.log("Er is een fout opgetreden:", error);
+            });
         } else {
-            console.log("No characteristic found to disconnect.");
+            console.log("Geen kenmerk gevonden om verbinding te verbreken.");
         }
     } else {
-        console.error("Bluetooth is not connected.");
-        window.alert("Bluetooth is not connected.")
+        console.error("Bluetooth is niet verbonden.");
+        window.alert("Bluetooth is niet verbonden.");
     }
 }
 
@@ -191,7 +189,7 @@ function getDateTime() {
     var hours = ("00" + currentdate.getHours()).slice(-2);
     var minutes = ("00" + currentdate.getMinutes()).slice(-2);
     var seconds = ("00" + currentdate.getSeconds()).slice(-2);
-    var datetime = day + "/" + month + "/" + year + " at " + hours + ":" + minutes + ":" + seconds;
+    var datetime = day + "/" + month + "/" + year + " om " + hours + ":" + minutes + ":" + seconds;
     return datetime;
 }
 </script>
