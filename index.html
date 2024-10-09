@@ -48,7 +48,6 @@ const timestampContainer = document.getElementById('timestamp');
 var deviceName = 'ESP32SINS';  // Match the name from your ESP32 sketch
 var bleService = 'c203e7c5-dfc4-46d2-a524-f3c41761a4ea';  // Service UUID
 var sensorCharacteristic = 'f4f7de75-c2da-4234-93ef-17fcb04d3674';  // Characteristic UUID
-var ledCharacteristic = '19b10002-e8f2-537e-4f6c-d104768a1214';
 
 // Global Variables to Handle Bluetooth
 var bleServer;
@@ -56,18 +55,23 @@ var bleServiceFound;
 var sensorCharacteristicFound;
 
 // Connect Button
-connectButton.addEventListener('click', (event) => {
-        if (isWebBluetoothEnabled()) {
-            connectToDevice();
-        }
-    });
+connectButton.addEventListener('click', () => {
+    if (isWebBluetoothEnabled()) {
+        connectToDevice();
+    }
+});
 
 // Disconnect Button
 disconnectButton.addEventListener('click', disconnectDevice);
 
 // Measure Button
-measureButton.addEventListener('click', () => writeOnCharacteristic(1));
-measureButton.addEventListener('click', () => writeOnCharacteristic(0));
+measureButton.addEventListener('click', () => {
+    if (bleServer && bleServer.connected) {
+        writeOnCharacteristic(1); // Trigger temperature measurement
+    } else {
+        window.alert("Bluetooth is not connected. Cannot measure temperature.");
+    }
+});
 
 // Check if BLE is available in your Browser
 function isWebBluetoothEnabled() {
@@ -136,28 +140,21 @@ function handleCharacteristicChange(event) {
     timestampContainer.innerHTML = getDateTime();
 }
 
+// Write to the BLE characteristic
 function writeOnCharacteristic(value) {
-        if (bleServer && bleServer.connected) {
-            bleServiceFound.getCharacteristic(sensorCharacteristic)
-            .then(characteristic => {
-                console.log("Found the LED characteristic: ", characteristic.uuid);
-                const data = new Uint8Array([value]);
-                return characteristic.writeValue(data);
-            })
-            .then(() => {
-                latestValueSent.innerHTML = value;
-                updateServoState(value); // Call function to update servo state based on the value
-                console.log("Value written to LED characteristic:", value);
-            })
-            .catch(error => {
-                console.error("Error writing to the LED characteristic: ", error);
-            });
-        } else {
-            console.error("Bluetooth is not connected. Cannot write to characteristic.")
-            window.alert("Bluetooth is not connected. Cannot write to characteristic. \n Connect to BLE first!");
-        }
+    if (sensorCharacteristicFound) {
+        const data = new Uint8Array([value]);
+        sensorCharacteristicFound.writeValue(data)
+        .then(() => {
+            console.log("Temperature measurement triggered.");
+        })
+        .catch(error => {
+            console.error("Error writing to characteristic:", error);
+        });
     }
+}
 
+// Disconnect Device
 function disconnectDevice() {
     console.log("Disconnect Device.");
     if (bleServer && bleServer.connected) {
@@ -175,15 +172,11 @@ function disconnectDevice() {
                 .catch(error => {
                     console.log("An error occurred:", error);
                 });
-        } else {
-            console.log("No characteristic found to disconnect.");
         }
-    } else {
-        console.error("Bluetooth is not connected.");
-        window.alert("Bluetooth is not connected.")
     }
 }
 
+// Get Current Date and Time
 function getDateTime() {
     var currentdate = new Date();
     var day = ("00" + currentdate.getDate()).slice(-2);
