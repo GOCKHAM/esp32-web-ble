@@ -55,7 +55,7 @@ var bleServiceFound;
 var sensorCharacteristicFound;
 
 // Connect Button
-connectButton.addEventListener('click', () => {
+connectButton.addEventListener('click', (event) => {
     if (isWebBluetoothEnabled()) {
         connectToDevice();
     }
@@ -65,13 +65,7 @@ connectButton.addEventListener('click', () => {
 disconnectButton.addEventListener('click', disconnectDevice);
 
 // Measure Button
-measureButton.addEventListener('click', () => {
-    if (bleServer && bleServer.connected) {
-        writeOnCharacteristic(1); // Trigger temperature measurement
-    } else {
-        window.alert("Bluetooth is not connected. Cannot measure temperature.");
-    }
-});
+measureButton.addEventListener('click', () => writeOnCharacteristic(1));
 
 // Check if BLE is available in your Browser
 function isWebBluetoothEnabled() {
@@ -117,7 +111,6 @@ function connectToDevice() {
         return characteristic.readValue();
     })
     .then(value => {
-        console.log("Read value: ", value);
         const decodedValue = new TextDecoder().decode(value);
         retrievedValue.innerHTML = decodedValue;
     })
@@ -130,7 +123,6 @@ function onDisconnected(event) {
     console.log('Device Disconnected:', event.target.device.name);
     bleStateContainer.innerHTML = "Device disconnected";
     bleStateContainer.style.color = "#d13a30";
-    connectToDevice();
 }
 
 function handleCharacteristicChange(event) {
@@ -140,43 +132,36 @@ function handleCharacteristicChange(event) {
     timestampContainer.innerHTML = getDateTime();
 }
 
-// Write to the BLE characteristic
 function writeOnCharacteristic(value) {
-    if (sensorCharacteristicFound) {
-        const data = new Uint8Array([value]);
-        sensorCharacteristicFound.writeValue(data)
+    if (bleServer && bleServer.connected) {
+        sensorCharacteristicFound.writeValue(new Uint8Array([value]))
         .then(() => {
-            console.log("Temperature measurement triggered.");
+            console.log("Value written to sensor characteristic:", value);
         })
         .catch(error => {
-            console.error("Error writing to characteristic:", error);
+            console.error("Error writing to characteristic: ", error);
+        });
+    } else {
+        console.error("Bluetooth is not connected. Cannot write to characteristic.")
+        window.alert("Bluetooth is not connected. Cannot write to characteristic. \n Connect to BLE first!");
+    }
+}
+
+function disconnectDevice() {
+    if (bleServer && bleServer.connected) {
+        sensorCharacteristicFound.stopNotifications()
+        .then(() => {
+            bleServer.disconnect();
+            console.log("Device Disconnected");
+            bleStateContainer.innerHTML = "Device Disconnected";
+            bleStateContainer.style.color = "#d13a30";
+        })
+        .catch(error => {
+            console.log("An error occurred:", error);
         });
     }
 }
 
-// Disconnect Device
-function disconnectDevice() {
-    console.log("Disconnect Device.");
-    if (bleServer && bleServer.connected) {
-        if (sensorCharacteristicFound) {
-            sensorCharacteristicFound.stopNotifications()
-                .then(() => {
-                    console.log("Notifications Stopped");
-                    return bleServer.disconnect();
-                })
-                .then(() => {
-                    console.log("Device Disconnected");
-                    bleStateContainer.innerHTML = "Device Disconnected";
-                    bleStateContainer.style.color = "#d13a30";
-                })
-                .catch(error => {
-                    console.log("An error occurred:", error);
-                });
-        }
-    }
-}
-
-// Get Current Date and Time
 function getDateTime() {
     var currentdate = new Date();
     var day = ("00" + currentdate.getDate()).slice(-2);
