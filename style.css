@@ -1,21 +1,21 @@
 /* Algemene stijl voor de gehele pagina */
 body {
     font-family: 'Arial', sans-serif;
-    background-image: url('https://rewildingeurope.com/wp-content/uploads/2021/11/RS1765_SBA_2011-07-30_070027-low-1202x800.jpg'); /* Verwijzing naar de afbeelding */
-    background-size: cover; /* Zorgt ervoor dat de afbeelding de hele pagina bedekt */
-    background-position: center; /* Zorgt ervoor dat de afbeelding gecentreerd wordt */
-    background-repeat: no-repeat; /* Voorkomt dat de afbeelding herhaald wordt */
+    background-image: url('https://rewildingeurope.com/wp-content/uploads/2021/11/RS1765_SBA_2011-07-30_070027-low-1202x800.jpg');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
     margin: 0;
     padding: 0;
     display: flex;
-    flex-direction: column; /* Veranderd naar een kolomindeling */
-    align-items: center; /* Centreert de inhoud horizontaal */
+    flex-direction: column;
+    align-items: center;
     height: 100vh;
 }
 
 /* Top navigatie */
 .topnav {
-    background-color: rgba(255, 255, 255, 0.9); /* Semi-transparante achtergrond */
+    background-color: rgba(255, 255, 255, 0.9);
     width: 100%;
     padding: 20px;
     text-align: center;
@@ -23,10 +23,10 @@ body {
 
 /* Inhoudssectie */
 .content {
-    flex: 1; /* Laat de inhoudssectie de beschikbare ruimte innemen */
+    flex: 1;
     display: flex;
-    flex-direction: column; /* Stapelen van kaarten in een kolom */
-    align-items: center; /* Centeren van kaarten */
+    flex-direction: column;
+    align-items: center;
 }
 
 /* Stijl voor de kaarten */
@@ -37,12 +37,12 @@ body {
 }
 
 .card {
-    background-color: rgba(255, 255, 255, 0.9); /* Semi-transparante achtergrond */
+    background-color: rgba(255, 255, 255, 0.9);
     border-radius: 8px;
     box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
     padding: 20px;
-    max-width: 300px; /* Max breedte voor de kaarten */
-    text-align: center; /* Centeren van tekst in kaarten */
+    max-width: 300px;
+    text-align: center;
 }
 
 /* Stijlen voor de knoppen */
@@ -76,9 +76,8 @@ body {
 
 /* Footer sectie */
 .footer {
-    background-color: rgba(255, 255, 255, 0.9); /* Semi-transparante achtergrond */
+    background-color: rgba(255, 255, 255, 0.9);
     text-align: center;
     padding: 10px;
-    margin-top: auto; /* Zorgt ervoor dat de footer onderaan blijft */
+    margin-top: auto;
 }
-
