@@ -86,6 +86,11 @@ class MyCharacteristicCallbacks : public BLECharacteristicCallbacks {
       int receivedValue = static_cast<int>(value[0]);
       if (receivedValue == 1) {
         temp = dht.readTemperature();
+        char tempStr[8];  // Voor het omzetten van float naar string
+        dtostrf(temp, 6, 2, tempStr);  // Converteer temperatuur naar string met 2 decimalen
+        pCharacteristic->setValue(tempStr);   // Stuur de nieuwe waarde terug via BLE
+        pCharacteristic->notify();           // Verzend de waarde via BLE-notificaties
+        Serial.println("Temperature Sent: " + String(tempStr));
       } else {
       }
     }
