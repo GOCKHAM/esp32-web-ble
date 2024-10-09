@@ -136,28 +136,27 @@ function handleCharacteristicChange(event) {
     timestampContainer.innerHTML = getDateTime();
 }
 
-function writeOnCharacteristic() {
-    // Send a command to measure temperature
-    if (bleServer && bleServer.connected) {
-        bleServiceFound.getCharacteristic(ledCharacteristic)
-                .then(characteristic => {
-                    console.log("Found the LED characteristic: ", characteristic.uuid);
-                    const data = new Uint8Array([value]);  // Assuming '1' initiates a temperature measurement
-                    return sensorCharacteristicFound.writeValue(data)
-        })
-                .then(() => {
-                    latestValueSent.innerHTML = value;
-                    console.log("Measurement command sent.", value);
-                })
-                .catch(error => {
-                    console.error("Error sending measurement command: ", error);
-                });
-        
-    } else {
-        console.error("Bluetooth is not connected. Cannot send measurement command.")
-        window.alert("Bluetooth is not connected. Cannot send measurement command. \n Connect to BLE first!")
+    function writeOnCharacteristic(value) {
+        if (bleServer && bleServer.connected) {
+            bleServiceFound.getCharacteristic(ledCharacteristic)
+            .then(characteristic => {
+                console.log("Found the LED characteristic: ", characteristic.uuid);
+                const data = new Uint8Array([value]);
+                return characteristic.writeValue(data);
+            })
+            .then(() => {
+                latestValueSent.innerHTML = value;
+                updateServoState(value); // Call function to update servo state based on the value
+                console.log("Value written to LED characteristic:", value);
+            })
+            .catch(error => {
+                console.error("Error writing to the LED characteristic: ", error);
+            });
+        } else {
+            console.error("Bluetooth is not connected. Cannot write to characteristic.")
+            window.alert("Bluetooth is not connected. Cannot write to characteristic. \n Connect to BLE first!");
+        }
     }
-}
 
 function disconnectDevice() {
     console.log("Disconnect Device.");
