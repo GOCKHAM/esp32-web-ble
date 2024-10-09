@@ -80,8 +80,7 @@ class MyCharacteristicCallbacks : public BLECharacteristicCallbacks {
     std::string tempvalue = pTempCharacteristic->getValue(); 
     String value = String(tempvalue.c_str());
     if (value.length() >= 0) {
-      Serial.print("Characteristic event, written: ");
-      Serial.println(static_cast<int>(value[0])); // Print de integer waarde
+      Serial.println("Measure Temperature gedrukt op webpagina");
 
       int receivedValue = static_cast<int>(value[0]);
       if (receivedValue == 1) {
@@ -90,7 +89,7 @@ class MyCharacteristicCallbacks : public BLECharacteristicCallbacks {
         dtostrf(temp, 6, 2, tempStr);  // Converteer temperatuur naar string met 2 decimalen
         pCharacteristic->setValue(tempStr);   // Stuur de nieuwe waarde terug via BLE
         pCharacteristic->notify();           // Verzend de waarde via BLE-notificaties
-        Serial.println("Temperature Sent: " + String(tempStr));
+        Serial.println("Temperatuur bijgewerkt op webpagina " + String(tempStr));
       } else {
       }
     }
