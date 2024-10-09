@@ -1,64 +1,84 @@
-html {
-    font-family: Arial, Helvetica, sans-serif;
-    display: inline-block;
+/* Algemene stijl voor de gehele pagina */
+body {
+    font-family: 'Arial', sans-serif;
+    background-image: url('https://rewildingeurope.com/wp-content/uploads/2021/11/RS1765_SBA_2011-07-30_070027-low-1202x800.jpg'); /* Verwijzing naar de afbeelding */
+    background-size: cover; /* Zorgt ervoor dat de afbeelding de hele pagina bedekt */
+    background-position: center; /* Zorgt ervoor dat de afbeelding gecentreerd wordt */
+    background-repeat: no-repeat; /* Voorkomt dat de afbeelding herhaald wordt */
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column; /* Veranderd naar een kolomindeling */
+    align-items: center; /* Centreert de inhoud horizontaal */
+    height: 100vh;
+}
+
+/* Top navigatie */
+.topnav {
+    background-color: rgba(255, 255, 255, 0.9); /* Semi-transparante achtergrond */
+    width: 100%;
+    padding: 20px;
     text-align: center;
 }
-h1 {
-    font-size: 1.8rem;
-    color: white;
-}
-.topnav {
-    overflow: hidden;
-    background-color: #0A1128;
-}
-body {
-    margin: 0;
-}
+
+/* Inhoudssectie */
 .content {
-    padding: 50px;
+    flex: 1; /* Laat de inhoudssectie de beschikbare ruimte innemen */
+    display: flex;
+    flex-direction: column; /* Stapelen van kaarten in een kolom */
+    align-items: center; /* Centeren van kaarten */
 }
+
+/* Stijl voor de kaarten */
 .card-grid {
-    max-width: 800px;
-    margin: 0 auto;
-    margin-bottom: 30px;
-    display: grid;
-    grid-gap: 2rem;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    display: flex;
+    justify-content: center;
+    margin: 20px 0;
 }
+
 .card {
-    background-color: white;
-    box-shadow: 2px 2px 12px 1px rgba(140,140,140,.5);
+    background-color: rgba(255, 255, 255, 0.9); /* Semi-transparante achtergrond */
+    border-radius: 8px;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    max-width: 300px; /* Max breedte voor de kaarten */
+    text-align: center; /* Centeren van tekst in kaarten */
 }
-button {
+
+/* Stijlen voor de knoppen */
+.connectButton, .disconnectButton, .measureButton {
+    padding: 10px 20px;
+    font-size: 16px;
+    background-color: #4CAF50;
     color: white;
-    padding: 14px 20px;
-    margin: 8px 0;
     border: none;
+    border-radius: 5px;
     cursor: pointer;
-    border-radius: 4px;
+    transition: background-color 0.3s;
+    margin: 10px;
 }
 
-.onButton{
-    background-color: #1b8a94;
+.connectButton:hover, .disconnectButton:hover, .measureButton:hover {
+    background-color: #45a049;
 }
 
-.offButton{
-    background-color: #5f6c6d;
-}
-
-.connectButton{
-    background-color: #24af37;
-}
-
-.disconnectButton{
-    background-color: #d13a30;
-}
-
-.gray-label {
-    color: #bebebe;
-    font-size: 1rem;
-}
-
+/* Stijlen voor de temperatuurgegevens */
 .reading {
-    font-size: 1.8rem;
+    font-size: 20px;
+    color: #333;
+    margin-top: 10px;
 }
+
+/* Stijlen voor de BLE status */
+.gray-label {
+    color: #777;
+}
+
+/* Footer sectie */
+.footer {
+    background-color: rgba(255, 255, 255, 0.9); /* Semi-transparante achtergrond */
+    text-align: center;
+    padding: 10px;
+    margin-top: auto; /* Zorgt ervoor dat de footer onderaan blijft */
+}
+
