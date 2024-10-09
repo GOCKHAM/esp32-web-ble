@@ -85,7 +85,7 @@ class MyCharacteristicCallbacks : public BLECharacteristicCallbacks {
 
       int receivedValue = static_cast<int>(value[0]);
       if (receivedValue == 1) {
-        dht.readTemperature();
+        temp = dht.readTemperature();
       } else {
       }
     }
